@@ -1,0 +1,14 @@
+{
+  "name": "Gerador de Escalas",
+  "short_name": "Gerador de Escalas",
+  "description": "Ferramentas CT Price para montar horários, criar escalas e calcular o custo de colaboradores.",
+  "start_url": "./#horario",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F4F7F6",
+  "theme_color": "#006B32",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

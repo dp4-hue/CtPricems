@@ -1,0 +1,1476 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Ferramenta da CT Price Organização Contábil para montar horários de 42 h (ou 40 h) em 5 dias e escalas com duas folgas semanais, conforme a EC nº 141/2026.">
+<meta name="theme-color" content="#006B32">
+<meta property="og:title" content="Gerador de Escala | CT Price">
+<meta property="og:description" content="Monte o horário e a escala da sua equipe com duas folgas por semana (EC nº 141/2026).">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/png" href="logo-ct-price.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Gerador de Escalas">
+<title>Gerador de Escala | CT Price</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: cartão de ponto limpo — marca no topo, abas sublinhadas, formulário enxuto à esquerda e resultado à direita */
+:root{
+  --bg:#F4F7F6; --surface:#FFFFFF; --soft:#EEF3F1; --line:#E0E7E8;
+  --navy:#142C42; --ink:#263E50; --muted:#617888;
+  --green:#006B32; --green-soft:#DDEFE4; --green-ink:#00572A; --on-green:#FFFFFF; --green-tint:#EBF6EF; --green-line:#CFE6D8;
+  --warn:#9A5B00; --warn-soft:#FBEFD9; --bad:#A3261B; --bad-soft:#F9E1DE;
+  --lunch:#C9D6DA; --off:#EBEFF1;
+  --f-display:"Montserrat",system-ui,sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0D1922; --surface:#14232E; --soft:#1A2C39; --line:#263A49;
+  --navy:#EAF1F5; --ink:#D3DEE5; --muted:#93A8B6;
+  --green:#41B875; --green-soft:#173A29; --green-ink:#7BD9A3; --on-green:#06210F; --green-tint:#152E22; --green-line:#21452F;
+  --warn:#E7A94A; --warn-soft:#3A2C14; --bad:#F08A7E; --bad-soft:#40201C;
+  --lunch:#34505F; --off:#1C2D39; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0D1922; --surface:#14232E; --soft:#1A2C39; --line:#263A49;
+  --navy:#EAF1F5; --ink:#D3DEE5; --muted:#93A8B6;
+  --green:#41B875; --green-soft:#173A29; --green-ink:#7BD9A3; --on-green:#06210F; --green-tint:#152E22; --green-line:#21452F;
+  --warn:#E7A94A; --warn-soft:#3A2C14; --bad:#F08A7E; --bad-soft:#40201C;
+  --lunch:#34505F; --off:#1C2D39; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+.wrap{max-width:1160px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{position:relative;background:#06451F url(cabecalho-ct-price.jpg) right center/cover no-repeat;color:#fff;overflow:hidden}
+header.top::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(4,64,30,.96) 0%,rgba(4,64,30,.82) 34%,rgba(4,64,30,0) 62%);pointer-events:none}
+header.top>.wrap{position:relative;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;padding-block:40px 36px;min-height:225px}
+.brand{display:flex;align-items:center;gap:22px;min-width:0}
+.logo{display:none}
+.logo-hero{display:block;height:64px;width:auto}
+.brand-sep{width:2px;align-self:stretch;min-height:58px;background:rgba(255,255,255,.75);border-radius:2px}
+.brand h1{font-family:var(--f-display);font-weight:800;font-size:1.7rem;color:#fff;margin:0;line-height:1.1;letter-spacing:.01em;text-transform:uppercase}
+.brand p{margin:4px 0 0;color:rgba(255,255,255,.88);font-size:.95rem}
+header.top .header-actions{align-self:flex-start}
+header.top .seg{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+header.top .seg button{color:#fff}
+header.top .seg button:hover{background:rgba(255,255,255,.18)}
+header.top .seg button[aria-pressed="true"]{background:#fff;color:#0B5A2E;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+header.top .theme-toggle{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.4);color:#fff;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+header.top .theme-toggle:hover{border-color:#fff;color:#fff}
+.tabbar{position:relative;background:#0B4F2A;border-radius:0 0 16px 16px;box-shadow:0 6px 18px rgba(4,50,24,.18)}
+.tabbar .wrap{padding-block:9px}
+.header-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.theme-toggle{display:inline-grid;place-items:center;width:34px;height:34px;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:50%;padding:0;cursor:pointer}
+.theme-toggle:hover{border-color:var(--green);color:var(--green-ink)}
+.theme-toggle .theme-icon{font-size:1.05rem;line-height:1}
+.seg{display:inline-flex;background:var(--green-tint);border:1px solid var(--green-line);border-radius:999px;padding:4px;gap:2px}
+.seg button{border:0;background:none;color:var(--green-ink);font:700 1.02rem var(--f-display);padding:9px 20px;border-radius:999px;cursor:pointer}
+.seg button:hover{background:var(--green-soft)}
+.seg button[aria-pressed="true"]{background:var(--green);color:var(--on-green);box-shadow:0 2px 6px rgba(0,107,50,.3)}
+.seg small{font:600 .78rem var(--f-body);color:inherit;opacity:.8;margin-left:2px}
+nav.tabs{display:flex;align-items:center;gap:0;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{position:relative;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:10px;flex:0 0 auto;min-height:50px;border:0;border-radius:10px;background:transparent;padding:8px 26px;margin:0 6px;font:700 1rem/1.1 var(--f-display);color:#fff;text-align:left;cursor:pointer;white-space:nowrap}
+nav.tabs button+button::before{content:"";position:absolute;left:-7px;top:12px;bottom:12px;width:1.5px;background:rgba(255,255,255,.45)}
+nav.tabs button svg{flex:0 0 auto}
+nav.tabs button:hover{background:rgba(255,255,255,.12)}
+nav.tabs button[aria-selected="true"]{background:#fff;color:#0B4F2A;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+nav.tabs button[aria-selected="true"]::before,nav.tabs button[aria-selected="true"]+button::before{display:none}
+nav.tabs #tab-custo svg{color:#FFB38F}
+nav.tabs #tab-custo[aria-selected="true"]{color:#94331e}
+nav.tabs #tab-custo[aria-selected="true"] svg{color:#c94f2d}
+.tool-row{display:block;padding-top:14px}
+.schedule-id{display:grid;grid-template-columns:repeat(2,minmax(160px,1fr)) auto auto;gap:12px;padding-top:8px}
+.schedule-id .fld{gap:3px}
+.schedule-id label{color:var(--navy);font-family:var(--f-display);font-weight:700}
+.schedule-id input{min-height:48px;text-transform:uppercase}
+input[type=text],textarea,.editable-name{text-transform:uppercase}
+input[type=text]::placeholder,textarea::placeholder{text-transform:none}
+.reset-all{align-self:end;display:inline-grid;place-items:center;width:48px;min-height:48px;padding:0;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--muted);font:700 .82rem var(--f-display);cursor:pointer;white-space:nowrap}
+.reset-all:hover{border-color:var(--bad);color:var(--bad);background:var(--bad-soft)}
+@media (max-width:900px){.schedule-id{padding-top:0}header.top>.wrap{min-height:0;padding-block:22px}.brand h1{font-size:1.35rem}.logo-hero{height:50px}}
+main{padding-block:24px 8px}
+.grid2{display:grid;grid-template-columns:minmax(0,330px) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:880px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px}
+.stack{display:flex;flex-direction:column;gap:20px;min-width:0}
+h2{font-family:var(--f-display);font-weight:700;color:var(--navy);font-size:1.05rem;margin:0}
+h3{font-family:var(--f-display);font-weight:700;color:var(--navy);font-size:.92rem;margin:0}
+.lead{color:var(--muted);margin:4px 0 0;font-size:.95rem}
+form.f{display:flex;flex-direction:column;gap:18px}
+.form-section{display:flex;flex-direction:column;gap:12px;padding:16px;background:var(--green-tint);border:1px solid var(--green-line);border-radius:11px}
+.form-section-title{display:flex;align-items:center;gap:9px;font:700 .94rem var(--f-display);color:var(--green-ink);margin:0}
+.form-section-title::before{content:"";width:4px;height:20px;border-radius:999px;background:var(--green);flex:0 0 auto}
+.form-section-subtitle{margin:-8px 0 0 13px;font-size:.84rem;color:var(--muted)}
+.process-section{padding:14px;background:var(--green-soft)}
+.process-section .btn{width:100%;justify-content:center;padding:11px 16px;font-family:var(--f-display);font-weight:800;letter-spacing:.04em;box-shadow:0 4px 10px rgba(0,107,50,.2)}
+.advanced-options{border:1px solid var(--green-line);border-radius:11px;background:var(--green-tint);padding:0;overflow:hidden}
+.advanced-options>summary{padding:14px 16px;color:var(--green-ink)}
+.advanced-options>summary::after{color:var(--green-ink)}
+.advanced-options>.advanced-body{display:flex;flex-direction:column;gap:14px;margin:0;padding:0 12px 12px}
+.advanced-options .form-section{background:var(--surface)}
+.turn-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.turn-actions .btn{justify-content:center;white-space:nowrap;padding:6px 8px!important;font-size:.78rem!important}
+.fld{display:flex;flex-direction:column;gap:4px;min-width:0}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.row>.fld{flex:1 1 110px}
+label.t,.t{font-weight:600;font-size:.86rem;color:var(--muted)}
+input[type=time],input[type=number],input[type=text],select,textarea{font:600 1rem var(--f-body);color:var(--navy);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;width:100%}
+input[type=time],.mono{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums}
+textarea{font-weight:400;min-height:96px;resize:vertical}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.hint{font-size:.85rem;color:var(--muted);margin:0}
+.interval-explanation{margin:0;padding:9px 11px;border-radius:8px;background:var(--surface);border:1px solid var(--green-line);color:var(--green-ink);font-size:.82rem;line-height:1.35}
+.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.days label{display:grid;place-items:center;padding:7px 0;border-radius:8px;background:var(--soft);cursor:pointer;font-weight:700;font-size:.85rem;color:var(--muted);user-select:none}
+.days input{position:absolute;opacity:0;pointer-events:none}
+.days label:has(input:checked){background:var(--green);color:var(--on-green)}
+.days label:has(input:focus-visible){outline:2px solid var(--green);outline-offset:2px}
+.toggle{display:flex;background:var(--green-tint);border:1px solid var(--green-line);border-radius:999px;padding:4px;gap:2px}
+.toggle label{flex:1;text-align:center;padding:8px 10px;border-radius:999px;cursor:pointer;font-weight:700;font-size:.92rem;color:var(--green-ink)}
+.toggle label:hover{background:var(--green-soft)}
+.toggle input{position:absolute;opacity:0;pointer-events:none}
+.toggle label:has(input:checked){background:var(--green);color:var(--on-green);box-shadow:0 2px 6px rgba(0,107,50,.3)}
+.toggle label:has(input:focus-visible){outline:2px solid var(--green);outline-offset:2px}
+.check{display:flex;align-items:flex-start;gap:8px;font-weight:600;font-size:.95rem}
+.check input{accent-color:var(--green);margin-top:4px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--green);background:var(--green);color:var(--on-green);font:700 .92rem var(--f-body);padding:8px 14px;border-radius:8px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--green-ink)}
+.btn.link{border:0;background:none;color:var(--green-ink);padding:4px 0}
+.btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sep{border:0;border-top:1px solid var(--line);margin:0}
+/* resultado principal */
+.hero .lbl{font-weight:700;color:var(--muted);font-size:.9rem}
+.hero .time{font-family:var(--f-mono);font-weight:600;color:var(--navy);font-size:1.45rem;line-height:1.35;font-variant-numeric:tabular-nums}
+.figs{display:flex;flex-wrap:wrap;gap:6px 28px;margin-top:10px}
+.figs div{font-size:.88rem;color:var(--muted)}
+.figs b{display:block;font-family:var(--f-mono);font-size:1.1rem;color:var(--navy);font-weight:600}
+/* conferência */
+.checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.checks li{display:flex;gap:10px;align-items:flex-start;font-size:.93rem}
+.dot{flex:0 0 auto;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:.72rem;font-weight:800;margin-top:1px}
+.dot.ok{background:var(--green-soft);color:var(--green-ink)}
+.dot.warn{background:var(--warn-soft);color:var(--warn)}
+.dot.bad{background:var(--bad-soft);color:var(--bad)}
+.dot.info{background:var(--soft);color:var(--muted)}
+.status{display:flex;gap:10px;align-items:center;font-weight:700;padding:10px 14px;border-radius:10px}
+.status.ok{background:var(--green-soft);color:var(--green-ink)}
+.status.warn{background:var(--warn-soft);color:var(--warn)}
+.status.bad{background:var(--bad-soft);color:var(--bad)}
+details{border-top:1px solid var(--line);padding-top:12px}
+details>summary{cursor:pointer;font-family:var(--f-display);font-weight:700;color:var(--navy);font-size:.92rem;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details>summary::-webkit-details-marker{display:none}
+details>summary::after{content:"+";font-size:1.1rem;color:var(--muted)}
+details[open]>summary::after{content:"–"}
+details>.body{margin-top:12px}
+/* régua */
+.ruler{display:grid;grid-template-columns:36px minmax(0,1fr);row-gap:5px;column-gap:10px;align-items:center}
+.ruler .d{font-weight:700;font-size:.8rem;color:var(--muted)}
+.track{position:relative;height:24px;background:repeating-linear-gradient(90deg,transparent 0 calc(100%/18 - 1px),var(--line) calc(100%/18 - 1px) calc(100%/18));border-radius:5px}
+.bar{position:absolute;top:2px;bottom:2px;background:var(--green);border-radius:4px;color:var(--on-green);font:600 .68rem var(--f-mono);display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden}
+.lun{position:absolute;top:8px;bottom:8px;background:var(--lunch);border-radius:3px}
+.track.off{background:var(--off)}
+.track.off span{position:absolute;inset:0;display:grid;place-items:center;font-weight:700;font-size:.72rem;color:var(--bad);letter-spacing:.08em;text-transform:uppercase}
+.axis{display:flex;justify-content:space-between;font:500 .68rem var(--f-mono);color:var(--muted);grid-column:2}
+/* tabelas */
+.tablebox{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:7px 8px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:.78rem;color:var(--muted);font-weight:700}
+td.mono{color:var(--navy)}
+td input[type=time]{width:112px;padding:4px 6px}
+tfoot td{font-weight:700;border-bottom:0}
+.money{font-family:var(--f-mono)}
+/* turnos */
+.turnos{display:flex;flex-direction:column;gap:10px}
+.turno{display:grid;grid-template-columns:minmax(64px,.75fr) minmax(110px,1.35fr);gap:9px;align-items:end;padding:12px;background:var(--surface);border:1px solid var(--green-line);border-radius:10px}
+.turno-card-head{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:7px;border-bottom:1px solid var(--line)}
+.turno-card-head strong{color:var(--green-ink);font:700 .85rem var(--f-display)}
+.turno-field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.turno-field>.t{font-size:.76rem}
+.turno-output{grid-column:1/-1}
+.turno input[type=number]{min-width:0;padding-left:8px;padding-right:5px}
+.turno input[type=time],.turno .saida{font:600 .9rem var(--f-mono);font-variant-numeric:tabular-nums}
+.turno input[type=time]{width:100%;min-width:0;padding-left:8px;padding-right:4px}
+.turno .saida-wrap{min-width:0}
+.turno .saida{min-height:40px;display:flex;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--soft);color:var(--navy)}
+.turno .virada{font-size:.76rem;font-weight:700;color:var(--bad);margin:3px 0 0 2px;white-space:nowrap}
+.company-interval{display:flex;flex-direction:column;gap:9px;padding-top:12px;border-top:1px solid var(--green-line)}
+.company-interval-title{margin:0;color:var(--green-ink);font:700 .88rem var(--f-display)}
+.company-interval .toggle{background:var(--surface)}
+.company-interval .toggle label{padding:6px 9px;font-size:.84rem}
+.company-interval .row{align-items:start}
+.company-interval .interval-explanation{background:rgba(255,255,255,.7)}
+.company-interval input[type=text]{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.company-interval input[readonly]{background:var(--soft);color:var(--green-ink);cursor:default}
+.turno-remove{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:5px 9px;border:1px solid rgba(163,38,27,.18);background:var(--bad-soft);color:var(--bad);border-radius:7px;min-height:30px;cursor:pointer;font:700 .76rem var(--f-body);line-height:1}
+.turno-remove:disabled{opacity:.35;cursor:default}
+.exit-highlight{display:inline-block;padding:.06em .42em;border-radius:.4em;background:var(--bad-soft);color:var(--bad);font-weight:700;line-height:1.35;vertical-align:.08em}
+.x{border:0;background:var(--soft);color:var(--muted);border-radius:8px;height:34px;cursor:pointer;font-weight:700}
+.x:disabled{opacity:.35;cursor:default}
+/* escala */
+.sched th,.sched td{text-align:center;padding:5px 4px}
+.sched th:first-child,.sched td:first-child{text-align:left;position:sticky;left:0;background:var(--surface);z-index:1;padding-right:10px}
+.sched td:first-child b{display:block;max-width:150px;overflow:hidden;text-overflow:ellipsis;color:var(--navy)}
+.sched td:first-child small{font:500 .72rem var(--f-mono);color:var(--muted)}
+.sched td:first-child b.editable-name{display:inline-block;max-width:150px;padding:1px 4px;margin-left:-4px;border-bottom:1px dashed var(--green);border-radius:4px;cursor:text}
+.sched td:first-child b.editable-name::after{content:"✎";display:inline-block;margin-left:6px;color:var(--green);font:700 .78rem var(--f-body);vertical-align:.08em}
+.sched td:first-child b.editable-name:hover,.sched td:first-child b.editable-name:focus{background:var(--green-tint);outline:1px solid var(--green-line);overflow:visible;text-overflow:clip}
+.sched td:first-child .worker-shift,.sched td:first-child .worker-lunch{display:block;line-height:1.35}
+.sched td:first-child .worker-lunch{color:var(--green-ink);font-family:var(--f-body);font-weight:600}
+.cell{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-width:56px;min-height:34px;padding:3px 5px;border-radius:6px;font:600 .72rem var(--f-mono);line-height:1.25}
+.cell.w{background:var(--green-soft);color:var(--green-ink)}
+.fem-btn{margin-left:6px;width:22px;height:22px;border-radius:6px;font:800 .72rem var(--f-body);cursor:pointer;vertical-align:2px;border:1.5px solid #cfd8dc;background:var(--surface);color:#9aa7b0;padding:0}
+.fem-btn.on{border-color:#C94F2D;background:#C94F2D;color:#fff}
+.fem-btn:hover{border-color:#C94F2D}
+.cell.w.esp{box-shadow:inset 0 0 0 1.5px #5b8db3;background:#e6f0f7;color:#14425f}
+.cell .day-note{display:block;margin-top:3px;padding-top:3px;border-top:1px solid rgba(20,66,95,.25);color:#14425f;font:700 .62rem var(--f-body);text-transform:uppercase;letter-spacing:.03em;white-space:nowrap}
+.cell .lunch-change{display:block;margin-top:3px;padding-top:3px;border-top:1px solid color-mix(in srgb,var(--warn) 40%,transparent);color:var(--warn);font:700 .66rem var(--f-mono);white-space:nowrap}
+.cell.o{background:var(--off);color:var(--bad);font:700 .68rem var(--f-body);letter-spacing:.06em;text-transform:uppercase}
+.cell.c{background:var(--off);color:var(--bad);font:700 .68rem var(--f-body);letter-spacing:.06em;text-transform:uppercase}
+.weeks{display:flex;gap:6px;flex-wrap:wrap}
+.weeks button{border:0;background:var(--soft);color:var(--muted);border-radius:999px;padding:5px 14px;font:600 .88rem var(--f-body);cursor:pointer}
+.weeks button[aria-pressed="true"]{background:var(--navy);color:var(--surface)}
+/* cobertura por horário */
+.heat{display:grid;grid-template-columns:36px minmax(0,1fr);gap:4px 10px;align-items:center}
+.heat .d{font-weight:700;font-size:.8rem;color:var(--muted)}
+.strip{display:grid;gap:2px}
+.strip span,.strip button{height:24px;border-radius:3px;display:grid;place-items:center;font:600 .66rem var(--f-mono);overflow:hidden}
+.strip button{border:0;padding:0;cursor:pointer}
+.strip button:hover{box-shadow:inset 0 0 0 2px var(--navy)}
+.strip .ok{background:var(--green-soft);color:var(--green-ink)}
+.strip .bad{background:var(--bad);color:var(--surface)}
+.strip .cl{background:var(--off);color:var(--muted)}
+.haxis{position:relative;height:16px;font:500 .68rem var(--f-mono);color:var(--muted)}
+.haxis span{position:absolute;top:0;white-space:nowrap}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.82rem;color:var(--muted);grid-column:2}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:4px}
+.toast{max-width:min(560px,calc(100% - 32px));text-align:center;line-height:1.35;position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--navy);color:var(--surface);padding:10px 18px;border-radius:18px;font-weight:600;z-index:20}
+.presence-modal{width:min(440px,calc(100% - 32px));border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);padding:0;box-shadow:0 18px 60px rgba(20,44,66,.28)}
+.presence-modal::backdrop{background:rgba(20,44,66,.48)}
+.presence-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:18px 20px;border-bottom:1px solid var(--line)}
+.presence-head button{border:0;background:var(--soft);color:var(--navy);border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:1.25rem}
+.presence-body{padding:18px 20px 22px}
+.presence-body h4{margin:0 0 8px;font:700 .86rem var(--f-display);color:var(--muted)}
+.presence-list{margin:0;padding-left:20px;columns:2;column-gap:28px}
+.presence-list li{break-inside:avoid;margin:4px 0;font-weight:600}
+.presence-lunch{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:.9rem}
+footer{padding-block:8px 32px}
+footer details{border:0;padding:0}
+footer .body p{color:var(--muted);font-size:.85rem;max-width:90ch;margin:4px 0}
+.sug-card{margin:18px 0 6px;padding:18px 20px;border:1px solid var(--green-line);border-radius:12px;background:var(--green-tint);display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px 24px}
+.sug-card>div:first-child{max-width:560px}
+.sug-modal{width:min(560px,calc(100% - 32px))}
+.sug-modal .sug-form{padding:20px}
+.sug-card h2{display:flex;align-items:center;gap:8px;color:var(--green-ink)}
+.sug-card .lead a{color:var(--green-ink);font-weight:700}
+.sug-form{display:flex;flex-direction:column;gap:10px}
+.sug-form textarea{min-height:84px;text-transform:none}
+.sug-form input[type=text]{text-transform:none}
+.sug-form .btns{justify-content:flex-end}
+.sug-opcoes{padding:12px 14px;border:1px solid var(--green);border-radius:10px;background:var(--surface)}
+.sug-opcoes p{margin:0 0 10px;color:var(--ink);font-size:.92rem}
+.sug-links{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sug-links .btn{justify-content:center;text-decoration:none;text-align:center}
+@media (max-width:480px){.sug-links{grid-template-columns:1fr}}
+@media (max-width:560px){.sug-cta,.sug-cta .btn{width:100%;justify-content:center}}
+.utility-links{display:flex;justify-content:flex-end;padding:4px 0 14px}
+.manual-link{display:inline-flex;align-items:center;gap:7px;color:var(--muted);font:700 .78rem var(--f-display);text-decoration:none;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 10px}
+.manual-link:hover{color:var(--green-ink);border-color:var(--green-line);background:var(--green-tint)}
+/* escalas salvas */
+.saved-btn:hover{border-color:var(--green)!important;color:var(--green-ink)!important;background:var(--green-tint)!important}
+.saved-btn[aria-pressed="true"]{border-color:var(--green);color:var(--on-green);background:var(--green)}
+.saved-btn[aria-pressed="true"]:hover{color:var(--green-ink)!important}
+.saved-top{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between}
+.saved-top .fld{flex:1 1 240px;max-width:360px}
+.privacy{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:10px;background:var(--green-tint);border:1px solid var(--green-line);color:var(--green-ink);font-size:.9rem}
+.privacy b{font-family:var(--f-display)}
+.saved-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.saved-item{display:flex;flex-direction:column;gap:10px;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.saved-item.current{border-color:var(--green);box-shadow:0 0 0 2px var(--green-soft)}
+.saved-item h3{font-size:1rem;word-break:break-word}
+.saved-meta{display:flex;flex-direction:column;gap:2px;font-size:.84rem;color:var(--muted)}
+.saved-meta b{color:var(--navy);font-weight:600}
+.saved-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:auto}
+.saved-actions .btn{justify-content:center;padding:7px 8px;font-size:.84rem}
+.saved-actions .btn.del{grid-column:1/-1;background:transparent;border-color:rgba(163,38,27,.3);color:var(--bad)}
+.saved-actions .btn.del.armed{background:var(--bad);border-color:var(--bad);color:#fff}
+.saved-empty{padding:28px 16px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}
+.save-modal{width:min(460px,calc(100% - 32px));border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);padding:0;box-shadow:0 18px 60px rgba(20,44,66,.28)}
+.save-modal::backdrop{background:rgba(20,44,66,.48)}
+.save-modal form{display:flex;flex-direction:column;gap:14px;padding:20px}
+.current-badge{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--green-ink);background:var(--green-tint);border:1px solid var(--green-line);border-radius:999px;padding:3px 10px;align-self:flex-start}
+@media (max-width:560px){.card{padding:16px}.brand{gap:12px}.brand h1{font-size:1.1rem}.brand p{font-size:.82rem}.logo-hero{height:38px}.brand-sep{min-height:44px}header.top::before{background:linear-gradient(180deg,rgba(4,64,30,.9),rgba(4,64,30,.72))}nav.tabs button{flex:1 1 0;flex-direction:column;gap:3px;padding:7px 4px;margin:0 2px;font-size:.74rem;line-height:1.15;white-space:normal;text-align:center}nav.tabs button+button::before{left:-3px}nav.tabs button svg{width:21px;height:21px}.tabbar .wrap{padding-block:7px}.hero .time{font-size:1.15rem}.schedule-id{grid-template-columns:1fr auto auto}.schedule-id .fld:first-child{grid-column:1/-1}.turno{grid-template-columns:minmax(58px,.75fr) minmax(96px,1.35fr);gap:6px;padding:9px}.turno-remove{min-height:28px;padding:4px 7px}}
+</style>
+
+</head>
+<body style="margin:0">
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <img class="logo" src="logo-ct-price.png" alt="" width="146" height="42" aria-hidden="true">
+      <img class="logo-hero" src="logo-ct-price-branco.png" alt="CT Price Organização Contábil" width="222" height="64">
+      <span class="brand-sep" aria-hidden="true"></span>
+      <div>
+        <h1>Gerador de Escala</h1>
+        <p>Duas folgas por semana · EC nº 141/2026</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="seg" id="reg-selector" role="group" aria-label="Jornada semanal">
+        <button type="button" id="reg42" data-reg="42" aria-pressed="true">42 h <small>dez/2026</small></button>
+        <button type="button" id="reg40" data-reg="40" aria-pressed="false">40 h <small>dez/2027</small></button>
+      </div>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false" aria-label="Ativar tema escuro" title="Ativar tema escuro"><span class="theme-icon" id="theme-icon" aria-hidden="true">☾</span></button>
+    </div>
+  </div>
+  <div class="tabbar"><div class="wrap">
+    <nav class="tabs" role="tablist" aria-label="Ferramentas">
+      <button role="tab" id="tab-horario" data-tab="horario" aria-selected="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Criar Horário</span></button>
+      <button role="tab" id="tab-escala" data-tab="escala" aria-selected="false"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4M7.5 13.5h2M11 13.5h2M14.5 13.5h2M7.5 17h2M11 17h2"/></svg><span>Criar Escala</span></button>
+      <button role="tab" id="tab-custo" data-tab="custo" aria-selected="false"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2.5" width="14" height="19" rx="2"/><path d="M8 6.5h8v3H8zM8.5 13h.01M12 13h.01M15.5 13h.01M8.5 16.5h.01M12 16.5h.01M15.5 16.5h.01"/></svg><span>Calcular Custo do Trabalhador</span></button>
+    </nav>
+  </div></div>
+</header>
+
+<div class="wrap">
+  <div class="tool-row">
+    <div class="schedule-id" role="group" aria-label="Identificação da escala">
+      <div class="fld"><label class="t" for="id-unidade">Unidade de Negócio</label><input type="text" id="id-unidade" placeholder="Ex.: Matriz Campo Grande" autocomplete="organization"></div>
+      <div class="fld"><label class="t" for="id-equipe">Equipe</label><input type="text" id="id-equipe" placeholder="Ex.: Equipe A" autocomplete="off"></div>
+      <button type="button" class="reset-all saved-btn" id="tab-salvas" data-open-tab="salvas" aria-pressed="false" title="Abrir escalas salvas" aria-label="Abrir escalas salvas"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 14l1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg></button>
+      <button type="button" class="reset-all" id="reset-all" title="Apagar as informações desta tela" aria-label="Apagar as informações desta tela"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>
+    </div>
+  </div>
+
+<main>
+  <!-- ===================== 1. HORÁRIO ===================== -->
+  <section id="p-horario" role="tabpanel" aria-labelledby="tab-horario">
+    <div class="grid2">
+      <form class="card f" onsubmit="return false">
+        <div>
+          <h2>Criar horário</h2>
+          <p class="lead">Informe a entrada e o intervalo. O sistema completa a jornada nos 5 dias de trabalho.</p>
+        </div>
+        <section class="form-section" aria-labelledby="dados-horario-title">
+          <h3 class="form-section-title" id="dados-horario-title">Dados do Horário</h3>
+          <div class="fld"><label class="t" for="h-entrada">Entrada</label><input type="time" id="h-entrada" value="08:00"></div>
+          <label class="check"><input type="checkbox" id="h-noturno"> Considerar hora noturna urbana reduzida (22h às 5h)</label>
+        </section>
+
+        <section class="form-section" aria-labelledby="intervalo-title">
+          <h3 class="form-section-title" id="intervalo-title">Intervalo</h3>
+        <div class="row">
+          <div class="fld"><label class="t" for="h-ini">Início do intervalo</label><input type="time" id="h-ini" value="11:30"></div>
+          <div class="fld"><label class="t" for="h-fim">Fim do intervalo</label><input type="time" id="h-fim" value="13:00"></div>
+        </div>
+        <p class="interval-explanation" id="h-intervalo-explicacao"></p>
+        </section>
+
+        <section class="form-section" aria-labelledby="dias-trabalho-title">
+          <h3 class="form-section-title" id="dias-trabalho-title">Dias de Trabalho</h3>
+          <div class="days" id="h-dias"></div>
+          <p class="hint" id="h-folgas"></p>
+        </section>
+
+        <details>
+          <summary>Nome do colaborador</summary>
+          <div class="body fld">
+            <label class="t" for="h-nome">Nome para identificação no PDF</label>
+            <input type="text" id="h-nome" placeholder="Digite o nome do colaborador" autocomplete="off">
+          </div>
+        </details>
+
+        <section class="form-section">
+          <div class="btns">
+          <button type="button" class="btn" id="h-usar">Usar na escala</button>
+          <button type="button" class="btn ghost" id="h-copiar">Gerar PDF</button>
+          <button type="button" class="btn ghost" id="h-salvar">Salvar</button>
+          </div>
+        </section>
+      </form>
+
+      <div class="card stack">
+        <div class="hero">
+          <div id="h-resumo"></div>
+          <div class="figs">
+            <div>Por dia<b id="h-dia"></b></div>
+            <div>Na semana<b id="h-semana"></b></div>
+            <div>Intervalo<b id="h-almoco"></b></div>
+            <div>Folgas<b id="h-nfolgas"></b></div>
+          </div>
+        </div>
+        <div class="ruler" id="h-ruler"></div>
+        <div id="h-aviso"></div>
+        <ul class="checks" id="h-checks"></ul>
+        <details id="h-det">
+          <summary>Ajustar a saída de um dia</summary>
+          <div class="body">
+            <div class="tablebox"><table id="h-tab"><thead><tr><th>Dia</th><th>Entrada</th><th>Almoço</th><th>Saída</th><th>Horas</th></tr></thead><tbody></tbody><tfoot></tfoot></table></div>
+            <div id="h-falta"></div>
+            <button type="button" class="btn link" id="h-reset">Voltar à distribuição igual</button>
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 2. ESCALA ===================== -->
+  <section id="p-escala" role="tabpanel" aria-labelledby="tab-escala" hidden>
+    <div class="grid2">
+      <form class="card f" onsubmit="return false">
+        <div>
+          <h2>Criar escala</h2>
+          <p class="lead">Cada pessoa trabalha 5 dias e folga 2. Os turnos podem ter entradas diferentes.</p>
+        </div>
+
+        <section class="form-section" aria-labelledby="dados-empresa-title">
+          <h3 class="form-section-title" id="dados-empresa-title">Dados da Empresa</h3>
+          <p class="form-section-subtitle">Horário de funcionamento</p>
+          <div class="row">
+            <div class="fld"><label class="t" for="e-abre" style="font-weight:400">Abre</label><input type="time" id="e-abre" value="07:00"></div>
+            <div class="fld"><label class="t" for="e-fecha" style="font-weight:400">Fecha</label><input type="time" id="e-fecha" value="19:00"></div>
+          </div>
+          <label class="check"><input type="checkbox" id="e-noturno"> Horário Noturno</label>
+          <p class="hint" id="e-virada-hint" hidden>Será considerada a hora noturna urbana reduzida entre 22h e 5h. Quando o fechamento for igual ou anterior à abertura, ele será considerado no dia seguinte.</p>
+          <label class="check"><input type="checkbox" id="e-fa"> Fecha para Almoço ou Jantar?</label>
+          <div class="row" id="e-fa-box" hidden>
+            <div class="fld"><label class="t" for="e-fa-ini" style="font-weight:400">Fecha às</label><input type="time" id="e-fa-ini" value="12:00"></div>
+            <div class="fld"><label class="t" for="e-fa-fim" style="font-weight:400">Reabre às</label><input type="time" id="e-fa-fim" value="13:00"></div>
+          </div>
+          <h3 class="form-section-title" id="e-dias-title" style="margin-top:4px">Dias de Trabalho</h3>
+          <div class="days" id="e-dias" role="group" aria-labelledby="e-dias-title"></div>
+          <div class="company-interval" aria-labelledby="e-alm-title">
+            <p class="company-interval-title" id="e-alm-title">Intervalo dos colaboradores</p>
+            <div class="row" id="e-alm-hora-box">
+              <div class="fld"><label class="t" for="e-alm-ini" style="font-weight:400">Início do intervalo</label><input type="time" id="e-alm-ini" value="11:30"></div>
+              <div class="fld"><label class="t" for="e-alm-fim" style="font-weight:400">Volta do intervalo</label><input type="time" id="e-alm-fim" value="13:00"></div>
+            </div>
+            <label class="check"><input type="checkbox" id="e-alm-por-dur"> Definir o Intervalo pela quantidade de horas</label>
+            <div class="fld" id="e-alm-dur-box" hidden>
+              <label class="t" for="e-alm-dur" style="font-weight:400">Por tempo — horas:minutos</label>
+              <input type="text" id="e-alm-dur" value="1:30" placeholder="Ex.: 1:30 ou 2:00" inputmode="numeric">
+            </div>
+            <p class="interval-explanation" id="e-alm-exp"></p>
+          </div>
+        </section>
+
+        <section class="form-section" aria-labelledby="dados-atendimento-title">
+          <h3 class="form-section-title" id="dados-atendimento-title">Equipe de Atendimento</h3>
+          <div class="row">
+            <div class="fld"><label class="t" for="e-tot">Total de colaboradores</label><input type="number" id="e-tot" min="1" max="200" value="12"></div>
+            <div class="fld"><label class="t" for="e-min">Mínimo no local</label><input type="number" id="e-min" min="0" max="200" value="3"></div>
+          </div>
+          <p class="hint"><strong>Mínimo no local:</strong> Mínimo de pessoas presentes a qualquer hora do funcionamento.</p>
+        </section>
+
+        <section class="form-section process-section">
+          <button type="button" class="btn" id="e-repro">PROCESSAR</button>
+          <button type="button" class="btn" id="e-salvar" style="margin-top:10px">SALVAR</button>
+        </section>
+
+        <details class="advanced-options">
+          <summary>Opções avançadas</summary>
+          <div class="advanced-body">
+            <section class="form-section" aria-labelledby="turnos-title">
+              <h3 class="form-section-title" id="turnos-title">Turnos</h3>
+              <p class="form-section-subtitle">Horários dos colaboradores</p>
+              <div class="turnos" id="e-turnos"></div>
+              <div class="turn-actions">
+                <button type="button" class="btn" id="e-add" style="padding:4px 12px;font-size:.84rem;border-radius:999px">+ Adicionar turno</button>
+                <button type="button" class="btn" id="e-sug" style="padding:4px 12px;font-size:.84rem;border-radius:999px">↻ Sugerir horários</button>
+              </div>
+            </section>
+
+            <section class="form-section" aria-labelledby="rodizio-title">
+              <h3 class="form-section-title" id="rodizio-title">Rodízio e Escala</h3>
+              <div class="fld"><label class="t" for="e-sem">Rodízio</label>
+                <select id="e-sem"><option value="1">Folgas fixas (1 semana)</option><option value="2">2 semanas</option><option value="3" selected>3 semanas</option></select></div>
+              <label class="check"><input type="checkbox" id="e-juntas" checked> Folgas em dias seguidos</label>
+              <label class="check"><input type="checkbox" id="e-rev" checked> Revezar os intervalos para manter a equipe em atendimento</label>
+              <label class="check"><input type="checkbox" id="e-fem"> Folga dominical quinzenal para mulheres (CLT, art. 386)</label>
+              <p class="hint" id="e-fem-hint" hidden>Marque <b>F</b> (FEMININO) ao lado do nome das colaboradoras no quadro da escala.</p>
+            </section>
+
+            <section class="form-section" aria-labelledby="dif-title">
+              <h3 class="form-section-title" id="dif-title">Horário de Atendimento por Dia</h3>
+              <label class="check"><input type="checkbox" id="e-dif"> Algum dia da semana sua empresa tem horário de atendimento diferente?</label>
+              <div id="e-dif-box" hidden>
+                <p class="hint" style="margin-bottom:8px">Escolha o dia e informe o horário. Quem trabalha nesse dia entra e sai junto com o atendimento.</p>
+                <div class="days" id="e-dif-dias" role="group" aria-label="Dias com horário diferente"></div>
+                <div id="e-dif-rows" style="display:flex;flex-direction:column;gap:8px;margin-top:10px"></div>
+                <label class="check" style="margin-top:12px"><input type="checkbox" id="e-dif-comp" checked> Compensar as horas do dia mais curto nos outros dias da semana</label>
+                <p class="interval-explanation" id="e-dif-hint" style="margin-top:6px"></p>
+              </div>
+            </section>
+          </div>
+        </details>
+
+        <details>
+          <summary>Nomes dos colaboradores</summary>
+          <div class="body fld">
+            <label class="t" for="e-nomes">Um por linha, na ordem dos turnos</label>
+            <textarea id="e-nomes" placeholder="Ana&#10;Bruno&#10;Carla"></textarea>
+          </div>
+        </details>
+      </form>
+
+      <div class="card stack">
+        <div class="current-badge" id="e-aberta" hidden></div>
+        <div id="e-status"></div>
+        <div class="figs" id="e-figs" style="margin-top:0"></div>
+        <div id="e-aviso8"></div>
+        <ul class="checks" id="e-checks"></ul>
+        <div class="weeks" id="e-weeks"></div>
+        <div class="tablebox"><table class="sched" id="e-tab"></table></div>
+        <div>
+          <h3 style="margin-bottom:8px">Pessoas no local por horário</h3>
+          <p class="hint" style="margin:0 0 8px">Clique em um quadrinho para ver os nomes dos colaboradores.</p>
+          <div class="tablebox"><div class="heat" id="e-heat" style="min-width:520px"></div></div>
+        </div>
+        <div class="btns"><button type="button" class="btn" id="e-pdf"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>Baixar em PDF</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 3. CUSTO DO COLABORADOR ===================== -->
+  <section id="p-custo" role="tabpanel" aria-labelledby="tab-custo" hidden>
+    <iframe id="custo-frame" src="calculadora.html" title="Calculadora de Custo do Colaborador" style="display:block;width:100%;min-height:1260px;border:0;border-radius:12px;background:var(--surface)" loading="eager"></iframe>
+  </section>
+
+  <!-- ===================== 4. ESCALAS SALVAS ===================== -->
+  <section id="p-salvas" role="tabpanel" aria-labelledby="tab-salvas" hidden>
+    <div class="card stack">
+      <div class="saved-top">
+        <div>
+          <h2>Escalas salvas</h2>
+          <p class="lead">Abra para editar, ou baixe o PDF e o Excel de cada equipe.</p>
+        </div>
+        <div class="fld"><label class="t" for="s-busca">Procurar</label><input type="text" id="s-busca" placeholder="Unidade, equipe ou nome" autocomplete="off"></div>
+      </div>
+      <div class="privacy"><span aria-hidden="true">🔒</span><span><b>Fica só neste computador.</b> As escalas são guardadas apenas neste navegador. Quem abrir o link em outro computador, celular ou navegador não vê nenhuma delas, e nada é enviado para a internet. Se os dados de navegação forem apagados, as escalas salvas também serão.</span></div>
+      <div class="saved-list" id="s-lista"></div>
+    </div>
+  </section>
+
+</main>
+
+  <section class="sug-card" id="sugestoes" aria-labelledby="sug-title">
+    <div>
+      <h2 id="sug-title"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg>Sugestões</h2>
+      <p class="lead">Tem uma ideia para melhorar a ferramenta ou encontrou algum problema? Escreva para a CT Price.</p>
+      <p class="lead">E-mail: <a href="mailto:dp4@ctpricems.com.br">dp4@ctpricems.com.br</a></p>
+    </div>
+    <div class="sug-cta"><button type="button" class="btn" id="sug-abrir"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>Enviar uma sugestão</button></div>
+  </section>
+
+  <div class="utility-links">
+    <a class="manual-link" href="manual-gerador-de-escalas-ct-price.pdf" download>↧ Baixar manual em PDF</a>
+  </div>
+
+  <footer id="legal-footer">
+    <details>
+      <summary>Base legal e observações</summary>
+      <div class="body">
+        <p>EC nº 141/2026: 42 h semanais a partir de dez/2026 e 40 h a partir de dez/2027, com duas folgas por semana e sem redução de salário.</p>
+        <p>CLT art. 59 (compensação, até 10 h por dia), art. 66 (11 h entre jornadas), art. 67 (repouso semanal, preferencialmente aos domingos) e art. 71 (intervalo de 1 h a 2 h). OJ 410 da SDI-1/TST: a folga deve vir antes do 7º dia seguido de trabalho. Lei 10.101/2000, art. 6º: no comércio, folga no domingo ao menos a cada 3 semanas.</p>
+        <p>Ferramenta de apoio da CT Price Organização Contábil. Confira a convenção coletiva da categoria antes de aplicar o horário.</p>
+      </div>
+    </details>
+  </footer>
+</div>
+<dialog class="presence-modal" id="presence-modal" aria-labelledby="presence-title">
+  <div class="presence-head"><div><h2 id="presence-title">Colaboradores no local</h2><p class="lead" id="presence-time"></p></div><button type="button" id="presence-close" aria-label="Fechar">×</button></div>
+  <div class="presence-body" id="presence-body"></div>
+</dialog>
+<dialog class="save-modal" id="save-modal" aria-labelledby="save-title">
+  <form method="dialog" onsubmit="return false">
+    <div><h2 id="save-title">Salvar escala</h2><p class="lead" id="save-lead">Fica guardada somente neste computador.</p></div>
+    <div class="fld"><label class="t" for="save-nome">Nome da escala</label><input type="text" id="save-nome" maxlength="80" autocomplete="off"></div>
+    <div class="btns">
+      <button type="button" class="btn" id="save-ok">Salvar</button>
+      <button type="button" class="btn ghost" id="save-new" hidden>Salvar como nova</button>
+      <button type="button" class="btn link" id="save-cancel">Cancelar</button>
+    </div>
+  </form>
+</dialog>
+<dialog class="save-modal" id="clear-modal" aria-labelledby="clear-title">
+  <form method="dialog" onsubmit="return false">
+    <div><h2 id="clear-title">Confirma a exclusão das informações dessa tela?</h2></div>
+    <div class="privacy"><span aria-hidden="true">🔒</span><span><b>Suas escalas salvas serão mantidas.</b> Para remover uma delas, use o botão <b>Excluir</b> em Escalas Salvas.</span></div>
+    <div class="btns">
+      <button type="button" class="btn" id="clear-ok" style="background:var(--bad);border-color:var(--bad);color:#fff">Sim, apagar</button>
+      <button type="button" class="btn ghost" id="clear-cancel">Cancelar</button>
+    </div>
+  </form>
+</dialog>
+<dialog class="save-modal sug-modal" id="sug-modal" aria-labelledby="sug-modal-title">
+    <form class="sug-form" onsubmit="return false">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px"><div><h2 id="sug-modal-title">Enviar sugestão</h2><p class="lead">Para: dp4@ctpricems.com.br</p></div><button type="button" class="x" id="sug-fechar" aria-label="Fechar" style="width:34px;font-size:1.2rem">×</button></div>
+    <div class="row">
+      <div class="fld"><label class="t" for="sug-nome">Seu nome e empresa (opcional)</label><input type="text" id="sug-nome" data-keepcase autocomplete="name"></div>
+    </div>
+    <div class="fld"><label class="t" for="sug-texto">Sugestão</label><textarea id="sug-texto" data-keepcase placeholder="Escreva aqui a sua sugestão"></textarea></div>
+    <div class="btns"><button type="button" class="btn" id="sug-enviar"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>Enviar sugestão</button></div>
+    <div class="sug-opcoes" id="sug-opcoes" hidden>
+      <p><b>Escolha como enviar.</b> A mensagem já vai pronta; é só clicar em Enviar no seu e-mail.</p>
+      <div class="sug-links">
+        <a class="btn" id="sug-gmail" target="_blank" rel="noopener">Enviar pelo Gmail</a>
+        <a class="btn" id="sug-outlook" target="_blank" rel="noopener">Enviar pelo Outlook</a>
+        <a class="btn ghost" id="sug-mailto" target="_blank" rel="noopener">Programa de e-mail do computador</a>
+        <button type="button" class="btn ghost" id="sug-copiar">Copiar a sugestão</button>
+      </div>
+    </div>
+    <p class="hint">Ao clicar em Enviar sugestão, escolha o seu e-mail (Gmail, Outlook ou o programa do computador). Não inclua dados pessoais de colaboradores.</p>
+  </form>
+</dialog>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script>
+(function(){
+const DN=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+const DF=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+const $=id=>document.getElementById(id);
+const toMin=s=>{if(!s)return NaN;const[a,b]=s.split(':').map(Number);return a*60+b};
+const hhmm=m=>{m=((Math.round(m)%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
+const clockDay=m=>hhmm(m)+(m>=1440?' +1':'');
+const dur=m=>{const s=m<0?'-':'';m=Math.abs(Math.round(m));return s+Math.floor(m/60)+'h'+String(m%60).padStart(2,'0')};
+const durCampo=m=>{m=Math.max(0,Math.round(+m||0));return Math.floor(m/60)+':'+String(m%60).padStart(2,'0')};
+const parseDurCampo=s=>{const m=String(s||'').trim().match(/^(\d{1,2}):([0-5]\d)$/);return m?+m[1]*60+ +m[2]:NaN};
+const after=(m,base)=>{while(m<=base)m+=1440;return m};
+// Na regra urbana, cada 52m30s entre 22h e 5h equivale a 60 minutos computados.
+function creditBetween(a,b,night){if(!night)return Math.max(0,b-a);let n=0;const d0=Math.floor(a/1440)-1,d1=Math.ceil(b/1440)+1;for(let d=d0;d<=d1;d++){const x=d*1440+1320,y=d*1440+1740;n+=Math.max(0,Math.min(b,y)-Math.max(a,x))}return Math.max(0,b-a)+n/7}
+function endForCredit(start,credit,night){if(!night)return start+credit;let lo=start,hi=start+credit+360;for(let q=0;q<24;q++){const mid=(lo+hi)/2;if(creditBetween(start,mid,true)<credit)lo=mid;else hi=mid}return Math.round((lo+hi)/2)}
+const brl=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ICON={ok:'✓',warn:'!',bad:'×',info:'i'};
+const li=(k,t)=>`<li><span class="dot ${k}" aria-label="${{ok:'ok',warn:'atenção',bad:'erro',info:'nota'}[k]}">${ICON[k]}</span><span>${t}</span></li>`;
+
+const KEY='ctprice-jornada-v2';
+const THEME_KEY='ctprice-theme';
+let S={reg:42,tab:'horario',semana:0,ident:{unidade:'',equipe:''},
+  h:{entrada:'07:00',modo:'hora',dur:90,manha:210,ini:'11:30',fim:'13:00',dias:[1,1,1,1,1,0,0],saidas:{},noturno:false,nome:'',sync:true},
+  e:{tot:12,abre:'07:00',fecha:'19:00',dias:[1,1,1,1,1,1,1],min:3,turnos:[{entrada:'07:00',n:6},{entrada:'09:06',n:6}],almModo:'hora',almDur:90,almIni:'11:30',almFim:'13:00',sem:3,juntas:true,rev:true,nomes:'',fa:false,faIni:'12:00',faFim:'13:00',noturno:false,dif:{ativo:false,dias:{}},fem:false,femMarks:{}},
+  v:{sal:2200,ad:50}};
+const DEFAULT_S=JSON.parse(JSON.stringify(S));
+let legacyE=null;
+try{const raw=localStorage.getItem(KEY);if(raw){const o=JSON.parse(raw);legacyE=o.e||null;if(o.h&&o.h.sync===undefined)o.h.sync=false;S={...S,...o,ident:{...S.ident,...o.ident},h:{...S.h,...o.h},e:{...S.e,...o.e},v:{...S.v,...o.v}};if(!(o.e&&o.e.tot))S.e.tot=S.e.turnos.reduce((a,t)=>a+t.n,0)}}catch(e){}
+S.h.modo='hora';
+// Tudo o que é digitado fica em MAIÚSCULAS, independentemente do Caps Lock.
+const UPC=v=>String(v==null?'':v).toLocaleUpperCase('pt-BR');
+window.addEventListener('input',ev=>{const t=ev.target;if(!t)return;
+  if(t.hasAttribute&&t.hasAttribute('data-keepcase'))return;
+  if((t.tagName==='INPUT'&&(t.type==='text'||t.type==='search'))||t.tagName==='TEXTAREA'){const v=t.value,u=UPC(v);if(v!==u){const a=t.selectionStart,b=t.selectionEnd;t.value=u;try{t.setSelectionRange(a,b)}catch(e){}}}
+},true);
+S.h.nome=UPC(S.h.nome);S.e.nomes=UPC(S.e.nomes);
+S.ident.unidade=(S.ident.unidade||'').toLocaleUpperCase('pt-BR');
+S.ident.equipe=(S.ident.equipe||'').toLocaleUpperCase('pt-BR');
+if(legacyE&&!Object.prototype.hasOwnProperty.call(legacyE,'almModo')){const t=Array.isArray(legacyE.turnos)&&legacyE.turnos.length?legacyE.turnos[0]:{};S.e.almModo=t.almModo==='hora'?'hora':'dur';S.e.almDur=Number.isFinite(+t.almDur)?Math.max(0,+t.almDur):90;S.e.almIni=t.almIni||S.h.ini||'11:30';S.e.almFim=t.almFim||S.h.fim||'13:00'}
+S.e.almModo=S.e.almModo==='hora'?'hora':'dur';S.e.almDur=Number.isFinite(+S.e.almDur)?Math.max(0,+S.e.almDur):90;S.e.almIni=S.e.almIni||'';S.e.almFim=S.e.almFim||'';
+S.e.turnos=(Array.isArray(S.e.turnos)&&S.e.turnos.length?S.e.turnos:[{entrada:S.e.abre||'08:00',n:Math.max(1,S.e.tot||1)}]).map(t=>({entrada:t.entrada||'',n:Math.max(0,+t.n||0)}));
+if(![1,2,3].includes(+S.e.sem))S.e.sem=3;
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+function toast(t,ms){const el=$('toast');el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,ms||2200)}
+function applyTheme(theme){
+  const dark=theme==='dark';document.documentElement.dataset.theme=dark?'dark':'light';
+  $('theme-toggle').setAttribute('aria-pressed',dark?'true':'false');$('theme-toggle').setAttribute('aria-label',dark?'Ativar tema claro':'Ativar tema escuro');$('theme-toggle').title=dark?'Ativar tema claro':'Ativar tema escuro';$('theme-icon').textContent=dark?'☀':'☾';
+  try{localStorage.setItem(THEME_KEY,theme)}catch(e){}
+  const f=$('custo-frame');try{if(f&&f.contentDocument)f.contentDocument.documentElement.dataset.theme=dark?'dark':'light'}catch(e){}
+}
+let currentTheme;try{currentTheme=localStorage.getItem(THEME_KEY)}catch(e){}if(!['light','dark'].includes(currentTheme))currentTheme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+$('theme-toggle').onclick=()=>{currentTheme=document.documentElement.dataset.theme==='dark'?'light':'dark';applyTheme(currentTheme)};applyTheme(currentTheme);
+async function copy(text){try{await navigator.clipboard.writeText(text);toast('Copiado')}catch(e){const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Copiado')}catch(_){toast('Não foi possível copiar')}ta.remove()}}
+
+/* ---------- regime & abas ---------- */
+document.querySelectorAll('[data-reg]').forEach(b=>b.onclick=()=>{S.reg=+b.dataset.reg;S.h.saidas={};renderAll()});
+function setTab(t){S.tab=t;document.querySelectorAll('[role=tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));$('tab-salvas').setAttribute('aria-pressed',t==='salvas'?'true':'false');
+  ['horario','escala','custo','salvas'].forEach(x=>$('p-'+x).hidden=x!==t);
+  $('reg-selector').hidden=t==='custo'||t==='salvas';$('legal-footer').hidden=t==='custo'||t==='salvas';
+  if(t==='custo')resizeCusto();if(t==='salvas'&&window.__renderSalvas)window.__renderSalvas();save()}
+$('tab-salvas').onclick=()=>{setTab('salvas');try{history.replaceState(null,'','#salvas')}catch(e){}};
+document.querySelectorAll('[role=tab]').forEach(b=>b.onclick=()=>{setTab(b.dataset.tab);try{history.replaceState(null,'','#'+b.dataset.tab)}catch(e){}});
+function resizeCusto(){const f=$('custo-frame');try{const h=f.contentDocument.documentElement.scrollHeight;if(h)f.style.height=Math.max(900,h+8)+'px'}catch(e){}}
+$('custo-frame').addEventListener('load',()=>{applyTheme(currentTheme);resizeCusto();try{new ResizeObserver(resizeCusto).observe($('custo-frame').contentDocument.body)}catch(e){}});
+function dayBoxes(el,arr,onch){el.innerHTML=DN.map((d,i)=>`<label><input type="checkbox" id="${el.id}-${i}" data-i="${i}" ${arr[i]?'checked':''}>${d}</label>`).join('');
+  el.querySelectorAll('input').forEach(c=>c.onchange=()=>{arr[+c.dataset.i]=c.checked?1:0;onch()})}
+
+/* ---------- 1. horário ---------- */
+function lunchParams(){const h=S.h;const E=toMin(h.entrada);
+  if(!h.noturno)return{manha:toMin(h.ini)-E,alm:toMin(h.fim)-toMin(h.ini)};const ls=after(toMin(h.ini),E),le=after(toMin(h.fim),ls);return{manha:ls-E,alm:le-ls}}
+function calcH(){
+  const h=S.h,E=toMin(h.entrada);const target=S.reg*60,perDay=target/5;const{manha,alm}=lunchParams();
+  const ls=E+manha,le=ls+alm;const work=[0,1,2,3,4,5,6].filter(i=>h.dias[i]);
+  const first=creditBetween(E,ls,h.noturno);const rows=work.map(i=>{const raw=h.saidas[i],custom=raw!=null?(h.noturno?after(raw,le):raw):null;const s=custom!=null?custom:endForCredit(le,Math.max(0,perDay-first),h.noturno);const span=s-E;if(span<=240)return{i,E,ls:s,le:s,saida:s,horas:creditBetween(E,s,h.noturno),direto:true};if(span-15<=360){const a=E+Math.round((span-15)/2/15)*15;return{i,E,ls:a,le:a+15,saida:s,horas:creditBetween(E,a,h.noturno)+creditBetween(a+15,s,h.noturno),curto:true}}return{i,E,ls,le,saida:s,horas:first+creditBetween(le,s,h.noturno)}});
+  return{E,manha,alm,ls,le,perDay,target,rows,total:rows.reduce((a,r)=>a+r.horas,0),work}
+}
+function intervaloForaDaJornada(c){
+  return S.h.noturno&&c.manha>0&&c.alm>0&&creditBetween(c.E,c.ls,true)>=c.perDay
+}
+function groupDays(rows){const out=[];rows.forEach(r=>{const last=out[out.length-1];if(last&&last.k===r.saida&&last.end===r.i-1){last.end=r.i}else out.push({k:r.saida,start:r.i,end:r.i,r})});
+  return out.map(g=>({lab:g.start===g.end?DF[g.start]:(g.end-g.start===1?DF[g.start]+' e '+DF[g.end].toLowerCase():DF[g.start]+' a '+DF[g.end].toLowerCase()),r:g.r}))}
+function renderH(){
+  const h=S.h;$('h-entrada').value=h.entrada;if(document.activeElement!==$('h-nome'))$('h-nome').value=h.nome||'';
+  $('h-noturno').checked=!!h.noturno;
+  $('h-ini').value=h.ini;$('h-fim').value=h.fim;
+  if(!h.entrada||!h.ini||!h.fim){$('h-intervalo-explicacao').textContent='Informe a entrada, o início e o fim do intervalo.';$('h-folgas').textContent='';$('h-resumo').innerHTML='<div class="lbl">Preencha os dados ao lado</div>';['h-dia','h-semana','h-almoco','h-nfolgas'].forEach(id=>$(id).textContent='—');$('h-ruler').innerHTML='';$('h-checks').innerHTML='';$('h-aviso').innerHTML='';$('h-falta').innerHTML='';['h-usar','h-copiar','h-salvar'].forEach(id=>{const b=$(id);if(b){b.disabled=false;b.title=''}});$('h-tab').tBodies[0].innerHTML='';$('h-tab').tFoot.innerHTML='';return}
+  const c=calcH();const folgas=[0,1,2,3,4,5,6].filter(i=>!h.dias[i]);
+  $('h-intervalo-explicacao').textContent=`O intervalo será das ${h.ini} às ${h.fim}, com duração de ${dur(c.alm)}.`;
+  const ok5=c.work.length===5;
+  $('h-folgas').textContent=ok5?'Folgas: '+folgas.map(i=>DF[i].toLowerCase()).join(' e '):`${c.work.length} dias marcados. Marque 5.`;
+  $('h-folgas').style.color=ok5?'':'var(--bad)';
+  const intervaloFora=intervaloForaDaJornada(c);
+  const okBase=ok5&&c.manha>0&&c.alm>0&&!intervaloFora;
+  $('h-resumo').innerHTML=okBase?groupDays(c.rows).map(g=>`<div class="lbl">${g.lab}</div><div class="time">${g.r.direto?`${hhmm(g.r.E)} – `:`${hhmm(g.r.E)} – ${hhmm(g.r.ls)}  ·  ${hhmm(g.r.le)} – `}<span class="exit-highlight">${hhmm(g.r.saida)}${g.r.saida>=1440?' no dia seguinte':''}</span></div>`).join(''):'<div class="lbl">Revise os dados ao lado</div>';
+  $('h-dia').textContent=okBase?(new Set(c.rows.map(r=>r.horas)).size===1?dur(c.rows[0].horas):'varia'):'—';
+  $('h-semana').textContent=dur(c.total);$('h-almoco').textContent=c.alm>0?dur(c.alm):'—';$('h-nfolgas').textContent=7-c.work.length;
+  const maxS=c.rows.length?Math.max(...c.rows.map(r=>r.saida)):1380;const A=h.noturno?Math.floor(c.E/60)*60:300,B=h.noturno?Math.max(A+480,Math.ceil(maxS/60)*60):1380,p=m=>Math.max(0,Math.min(100,(m-A)/(B-A)*100));
+  let rh='';for(let i=0;i<7;i++){const r=c.rows.find(x=>x.i===i);rh+=`<div class="d">${DN[i]}</div>`;
+    if(!r||!okBase){rh+=`<div class="track off"><span>${h.dias[i]?'':'Folga'}</span></div>`;continue}
+    rh+=r.direto?`<div class="track"><div class="bar" style="left:${p(r.E)}%;width:${p(r.saida)-p(r.E)}%">${hhmm(r.E)}–${hhmm(r.saida)}</div></div>`:`<div class="track"><div class="bar" style="left:${p(r.E)}%;width:${p(r.ls)-p(r.E)}%">${hhmm(r.E)}</div><div class="lun" style="left:${p(r.ls)}%;width:${p(r.le)-p(r.ls)}%"></div><div class="bar" style="left:${p(r.le)}%;width:${p(r.saida)-p(r.le)}%">${hhmm(r.saida)}</div></div>`}
+  const axis=Array.from({length:5},(_,i)=>A+(B-A)*i/4);rh+=`<div class="axis">${axis.map(m=>`<span>${hhmm(m)}</span>`).join('')}</div>`;$('h-ruler').innerHTML=rh;
+  $('h-tab').tBodies[0].innerHTML=okBase?c.rows.map(r=>`<tr><td><b>${DF[r.i]}</b></td><td class="mono">${hhmm(r.E)}</td><td class="mono">${r.direto?'<span style="font-family:var(--f-body);font-weight:700;color:var(--green-ink)">Sem intervalo</span>':(r.curto?'<span style="font-family:var(--f-body);font-weight:700;color:var(--green-ink)">Intervalo de 15 minutos</span>':`${hhmm(r.ls)}–${hhmm(r.le)}`)}</td><td><input type="time" id="h-s-${r.i}" data-i="${r.i}" value="${hhmm(r.saida)}" title="${r.saida>=1440?'Dia seguinte':''}"></td><td class="mono">${dur(r.horas)}</td></tr>`).join(''):'';
+  const diff=c.total-c.target;
+  $('h-tab').tFoot.innerHTML=okBase?`<tr><td colspan="4">Total (meta ${S.reg}h00)</td><td class="mono">${dur(c.total)}</td></tr>`:'';
+  $('h-tab').querySelectorAll('tbody input').forEach(inp=>inp.onchange=()=>{const v=toMin(inp.value);if(!isNaN(v)){S.h.saidas[+inp.dataset.i]=v;S.h.ultimo=+inp.dataset.i;renderAll()}});
+  // Quanto falta (ou sobra) para a jornada e opção de diluir nos outros dias
+  const dif=Math.round(c.total-c.target);
+  if(okBase&&Math.abs(dif)>=1){const outros=c.rows.filter(r=>r.i!==S.h.ultimo),n=outros.length||c.rows.length;
+    $('h-falta').innerHTML=`<div class="status ${dif<0?'warn':'bad'}" style="flex-direction:column;align-items:flex-start;gap:6px;margin:10px 0 4px"><span>${dif<0?`Faltam <b>${dur(-dif)}</b> para completar a jornada de ${S.reg}h00.`:`A semana passou <b>${dur(dif)}</b> da jornada de ${S.reg}h00.`}</span><span style="font-weight:600;color:var(--ink);font-size:.9rem">${dif<0?'Diluir':'Descontar'} esse tempo ${dif<0?'nos':'dos'} outros ${n} dias de trabalho (cerca de ${dur(Math.abs(dif)/n)} por dia).</span><button type="button" class="btn" id="h-diluir" style="padding:5px 14px;font-size:.84rem">${dif<0?'Diluir nos outros dias':'Descontar dos outros dias'}</button></div>`;
+    $('h-diluir').onclick=()=>{const alvo=outros.length?outros:c.rows,tot=-dif,base=Math.trunc(tot/alvo.length);let resto=tot-base*alvo.length;
+      alvo.forEach(r=>{let add=base;if(resto!==0){add+=Math.sign(resto);resto-=Math.sign(resto)}const alvoH=Math.max(0,r.horas+add);S.h.saidas[r.i]=alvoH<=240?endForCredit(c.E,alvoH,S.h.noturno):alvoH<=360?endForCredit(c.E,alvoH,S.h.noturno)+15:endForCredit(c.le,Math.max(0,alvoH-creditBetween(c.E,c.ls,S.h.noturno)),S.h.noturno)});
+      renderAll();toast(dif<0?'Tempo diluído nos outros dias':'Tempo descontado dos outros dias')}}
+  else $('h-falta').innerHTML='';
+  const L=[];let aviso8=null,avisoMx=0;
+  if(!ok5)L.push(li('bad','Marque exatamente 5 dias de trabalho para garantir as duas folgas.'));
+  if(intervaloFora)L.push(li('bad','O horário do intervalo está fora da jornada. Altere o intervalo para continuar.'));
+  else if(c.manha<=0||c.alm<=0)L.push(li('bad','A saída para o almoço precisa ser depois da entrada, e a volta depois da saída.'));
+  else{
+    if(c.alm<60)L.push(li('bad','Almoço menor que 1 hora. Para jornada acima de 6 h o mínimo é 1 h.'));
+    else if(c.alm>120)L.push(li('warn','Almoço acima de 2 horas só vale com acordo escrito ou convenção coletiva.'));
+    if(okBase){
+      if(Math.abs(diff)>=1)L.push(li(diff>0?'bad':'warn',`Total de ${dur(c.total)}, ${diff>0?'acima':'abaixo'} da meta de ${S.reg}h00.`));
+      const mx=Math.max(...c.rows.map(r=>r.horas));
+      if(mx>600)L.push(li('bad','Algum dia passa de 10 horas de trabalho, o limite com compensação.'));
+      else if(mx>480){aviso8=`${S.reg}-${mx}`;if(S.h.ack8===aviso8)L.push(li('warn',`${dur(mx)} por dia passa de 8 horas: compensação a ser formalizada em acordo ou convenção coletiva (ciente).`));else avisoMx=mx}
+      const maxSpan=Math.max(...c.rows.map(r=>r.saida-r.E));
+      if(1440-maxSpan<660)L.push(li('bad','Menos de 11 horas de descanso entre a saída e a entrada do dia seguinte.'));
+      if(c.rows.some(r=>r.curto))L.push(li('info',`${c.rows.filter(r=>r.curto).map(r=>DF[r.i]).join(', ')}: mais de 4 h e até 6 h de trabalho, com intervalo de 15 minutos (CLT, art. 71, § 1º).`));
+      if(c.rows.some(r=>r.direto))L.push(li('info',`${c.rows.filter(r=>r.direto).map(r=>DF[r.i]).join(', ')}: até 4 h de trabalho, sem intervalo.`));
+      if(h.noturno)L.push(li('info','Hora noturna urbana reduzida aplicada entre 22h e 5h. A saída pode ocorrer no dia seguinte.'));
+      if(h.dias[6])L.push(li('info','O domingo está entre os dias trabalhados. Na escala, use rodízio para dar folgas em domingos.'));
+      if(!L.some(x=>x.includes('dot bad'))&&Math.abs(diff)<1)L.unshift(li('ok',`${S.reg} horas na semana, duas folgas, almoço e descanso dentro das regras.`));
+    }
+  }
+  $('h-checks').innerHTML=L.join('');
+  // Jornada acima de 8 h por dia: o cliente precisa confirmar antes de continuar.
+  const pend=!!avisoMx;
+  $('h-aviso').innerHTML=pend?`<div class="status bad" style="flex-direction:column;align-items:flex-start;gap:6px"><span>Jornada acima de 8 horas por dia.</span><span style="font-weight:600;color:var(--ink)">Com <b>${dur(avisoMx)}</b> por dia, a jornada passa de 8 horas. A compensação precisa ser formalizada em acordo ou convenção coletiva.</span><button type="button" class="btn" id="h-ok8" style="margin-top:4px;padding:5px 14px;font-size:.84rem">Ok, ciente</button></div>`:'';
+  if(pend)$('h-ok8').onclick=()=>{S.h.ack8=aviso8;renderAll();toast('Ciente registrado')};
+  ['h-usar','h-copiar','h-salvar'].forEach(id=>{const b=$(id);if(!b)return;b.disabled=pend;b.title=pend?'Clique em “Ok, ciente” no aviso da jornada para continuar':''});
+}
+function horarioTexto(){const c=calcH();if(c.work.length!==5||c.manha<=0||intervaloForaDaJornada(c))return'';return groupDays(c.rows).map(g=>`${g.lab}: ${g.r.direto?`${hhmm(g.r.E)} às ${clockDay(g.r.saida)} (sem intervalo)`:`${hhmm(g.r.E)} às ${hhmm(g.r.ls)} e ${hhmm(g.r.le)} às ${clockDay(g.r.saida)}`}`).join('; ')+` (${dur(c.total)} por semana${S.h.noturno?', com hora noturna reduzida':''})`}
+
+async function gerarPdfHorario(){
+  const c=calcH();if(c.work.length!==5||c.manha<=0||c.alm<=0||intervaloForaDaJornada(c))throw new Error('horario');
+  const{PDFDocument,StandardFonts,rgb}=window.PDFLib,C=h=>rgb(parseInt(h.slice(0,2),16)/255,parseInt(h.slice(2,4),16)/255,parseInt(h.slice(4,6),16)/255);
+  const pdf=await PDFDocument.create();pdf.setTitle('Horário do colaborador - CT Price');pdf.setAuthor('CT Price Organização Contábil');
+  const F=await pdf.embedFont(StandardFonts.Helvetica),FB=await pdf.embedFont(StandardFonts.HelveticaBold),pg=pdf.addPage([595.28,841.89]);
+  const NAVY=C('142C42'),INK=C('263E50'),MUTED=C('617888'),GREEN=C('006B32'),TINT=C('EBF6EF'),LINE=C('C9D3D6'),WHITE=C('FFFFFF'),RED=C('A3261B'),REDTINT=C('FCEAE8');
+  const txt=s=>String(s).replace(/[–—]/g,'-').replace(/[^\x20-\x7E\xA0-\xFF]/g,'');const W=595.28,H=841.89,M=42;
+  const logoSrc=document.querySelector('header .logo').src,logoBytes=new Uint8Array(await(await fetch(logoSrc)).arrayBuffer()),logo=await pdf.embedPng(logoBytes);const lh=38,lw=lh*logo.width/logo.height;
+  pg.drawImage(logo,{x:M,y:H-M-lh,width:lw,height:lh});pg.drawText('Horário de Trabalho',{x:M+lw+18,y:H-M-18,size:18,font:FB,color:NAVY});
+  pg.drawText('CT Price Organização Contábil',{x:M+lw+18,y:H-M-34,size:9,font:F,color:MUTED});
+  let y=H-M-78;const nome=(S.h.nome||'Não informado').trim()||'Não informado';const unidade=(S.ident.unidade||'Não informada').trim()||'Não informada';const equipe=(S.ident.equipe||'Não informada').trim()||'Não informada';pg.drawRectangle({x:M,y:y-64,width:W-2*M,height:64,color:TINT,borderColor:C('CFE6D8'),borderWidth:.8});
+  pg.drawText('Colaborador',{x:M+14,y:y-18,size:9,font:F,color:MUTED});pg.drawText(txt(nome),{x:M+14,y:y-35,size:13,font:FB,color:NAVY});
+  pg.drawText(txt(`Unidade: ${unidade}`),{x:M+14,y:y-53,size:9,font:F,color:MUTED});
+  pg.drawText(`Jornada semanal: ${dur(c.total)}`,{x:W-M-190,y:y-19,size:10,font:FB,color:GREEN});pg.drawText(`Intervalo: ${dur(c.alm)}`,{x:W-M-190,y:y-35,size:9,font:F,color:MUTED});pg.drawText(txt(`Equipe: ${equipe}`),{x:W-M-190,y:y-52,size:9,font:F,color:MUTED});y-=88;
+  const cols=[150,88,145,88,40],heads=['Dia','Entrada','Intervalo','Saída','Horas'],rh=34;let x=M;
+  heads.forEach((h,i)=>{pg.drawRectangle({x,y:y-rh,width:cols[i],height:rh,color:NAVY});pg.drawText(txt(h),{x:x+8,y:y-21,size:9,font:FB,color:WHITE});x+=cols[i]});y-=rh;
+  [0,1,2,3,4,5,6].forEach((day,i)=>{x=M;const r=c.rows.find(row=>row.i===day),isOff=!r;const fill=isOff?REDTINT:(i%2?C('F6F9F8'):WHITE),vals=isOff?[DF[day],'FOLGA','—','—','—']:[DF[day],hhmm(r.E),r.direto?'Sem intervalo':r.curto?'Intervalo de 15 minutos':`${hhmm(r.ls)} - ${hhmm(r.le)}`,clockDay(r.saida),dur(r.horas)];vals.forEach((v,j)=>{pg.drawRectangle({x,y:y-rh,width:cols[j],height:rh,color:fill,borderColor:LINE,borderWidth:.5});pg.drawText(txt(v),{x:x+8,y:y-21,size:9,font:(j===0||isOff)?FB:F,color:isOff?RED:(j===0?NAVY:INK)});x+=cols[j]});y-=rh});
+  y-=20;pg.drawText(txt(`Observação: ${S.h.noturno?'hora noturna urbana reduzida considerada entre 22h e 5h.':'horário calculado conforme a jornada semanal selecionada.'}`),{x:M,y,size:9,font:F,color:MUTED});
+  pg.drawLine({start:{x:M,y:M+18},end:{x:W-M,y:M+18},thickness:.5,color:LINE});pg.drawText('CT Price Organização Contábil · Gerador de Escalas',{x:M,y:M+3,size:8,font:F,color:MUTED});
+  return await pdf.save();
+}
+
+$('h-entrada').onchange=e=>{S.h.sync=false;S.h.entrada=e.target.value;S.h.saidas={};renderAll()};
+$('h-noturno').onchange=e=>{S.h.noturno=e.target.checked;S.h.saidas={};renderAll()};
+['ini','fim'].forEach(k=>$('h-'+k).onchange=e=>{S.h.sync=false;S.h[k]=e.target.value;S.h.saidas={};renderAll()});
+$('h-reset').onclick=()=>{S.h.saidas={};S.h.ultimo=null;renderAll()};
+$('h-nome').oninput=e=>{S.h.nome=e.target.value;save()};
+$('h-copiar').onclick=async()=>{const b=$('h-copiar'),old=b.textContent;b.disabled=true;b.textContent='Gerando PDF…';try{await loadPdfLib();const bytes=await gerarPdfHorario();const base=(S.h.nome||'colaborador').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'colaborador';await salvarArquivo(`horario-${base}.pdf`,new Blob([bytes],{type:'application/pdf'}),'PDF salvo')}catch(err){console.error(err);toast('Complete o horário primeiro')}finally{b.disabled=false;b.textContent=old}};
+$('h-usar').onclick=()=>{const E=S.h.entrada;S.e.noturno=!!S.h.noturno;let t=S.e.turnos.find(x=>x.entrada===E);if(S.e.turnos.length===1){t=S.e.turnos[0];t.entrada=E}else if(!t){t=novoTurno(E,4);S.e.turnos.unshift(t)}S.e.almModo='hora';S.e.almIni=S.h.ini;S.e.almFim=S.h.fim;setTab('escala');renderAll();window.scrollTo({top:0,behavior:'smooth'})};
+
+/* ---------- 2. escala ---------- */
+function escalaEntrada(s){const e=S.e,m=toMin(s),a=toMin(e.abre);return e.noturno&&m<a?m+1440:m}
+function almocoFixo(){const e=S.e;if(!e.fa)return null;const A=toMin(e.abre),a=e.noturno?after(toMin(e.faIni),A-1):toMin(e.faIni),b=e.noturno?after(toMin(e.faFim),a):toMin(e.faFim);return{a,b,alm:b-a,ok:b>a}}
+function novoTurno(entrada,n){return{entrada,n}}
+function atualizarVoltaIntervalo(){const e=S.e;if(e.almModo!=='dur'||!e.almIni||!(e.almDur>0))return;const A=toMin(e.abre),a=e.noturno?after(toMin(e.almIni),A-1):toMin(e.almIni);e.almFim=hhmm(a+e.almDur)}
+function duracaoIntervaloTurno(){
+  const e=S.e,f=almocoFixo();if(f)return f.alm;
+  if(e.almModo!=='hora')return Math.max(0,Number.isFinite(+e.almDur)?+e.almDur:0);
+  const A=toMin(e.abre),a=e.noturno?after(toMin(e.almIni),A-1):toMin(e.almIni),b=e.noturno?after(toMin(e.almFim),a):toMin(e.almFim);return b-a
+}
+function intervaloResumo(){const f=almocoFixo();if(f)return dur(f.alm);const m=duracaoIntervaloTurno();return m>0?dur(m):'não informado'}
+function shiftTimes(turno,g){ // g=1 usa o segundo horário do revezamento
+  const e=S.e,t=typeof turno==='object'?turno:novoTurno(turno,1),entrada=t.entrada;
+  // Turno de 6 horas (30 h semanais): intervalo de 15 minutos no meio do turno.
+  if(t.seis){const E=escalaEntrada(entrada),ok=Number.isFinite(E),noc=S.e.noturno;const a0=Math.round(endForCredit(E,180,noc)/15)*15,ls=a0+(g?15:0),le=ls+15,first=creditBetween(E,ls,noc),s=endForCredit(le,Math.max(0,360-first),noc);
+    return{E,ls,le,s,ok,manha:ls-E,tard:s-le,seis:true,curto:true}}
+  const f=almocoFixo();
+  if(f){const perDay=S.reg*60/5;const E=escalaEntrada(entrada),manha=f.a-E,first=creditBetween(E,f.a,S.e.noturno),remain=perDay-first,s=endForCredit(f.b,Math.max(0,remain),S.e.noturno);
+    return{E,ls:f.a,le:f.b,s,ok:f.ok&&manha>0&&remain>0,manha,tard:s-f.b}}
+  const perDay=S.reg*60/5,E=escalaEntrada(entrada),alm=duracaoIntervaloTurno(t);
+  // Pela quantidade de horas: o intervalo fica no meio da jornada de cada turno (sem passar de 6 h seguidas).
+  const baseLs=e.almModo==='dur'?Math.round(endForCredit(E,Math.max(60,Math.round((perDay-alm)/2)),S.e.noturno)/15)*15:(e.noturno?after(toMin(e.almIni),E-1):toMin(e.almIni));
+  const baseFirst=creditBetween(E,baseLs,S.e.noturno),baseRemain=perDay-baseFirst,shift=g&&baseRemain-alm>=60?alm:0;
+  const ls=baseLs+shift,le=ls+alm,manha=ls-E,first=creditBetween(E,ls,S.e.noturno),remain=perDay-first,s=endForCredit(le,Math.max(0,remain),S.e.noturno);return{E,ls,le,s,ok:Number.isFinite(baseLs)&&manha>0&&alm>0&&remain>0,manha,tard:s-le}}
+function combos(arr,k){if(k===0)return[[]];const out=[];const rec=(s,acc)=>{if(acc.length===k){out.push(acc.slice());return}for(let i=s;i<arr.length;i++){acc.push(arr[i]);rec(i+1,acc);acc.pop()}};rec(0,[]);return out}
+function gerar(cfg,forceSplit,seed){
+  const{N,open,req,L}=cfg;const juntas=cfg.juntas&&!forceSplit;const ext=cfg.ext||null;
+  let a=(seed*2654435761)>>>0;const rnd=()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+  const noise=seed?2:0;
+  const openIdx=[0,1,2,3,4,5,6].filter(i=>open[i]);const closed=[0,1,2,3,4,5,6].filter(i=>!open[i]);
+  const need=Math.max(0,openIdx.length-5);
+  /* dia marcado “Todos trabalham neste dia”: não entra como folga */const candF=openIdx.filter(d=>!(cfg.noOff&&cfg.noOff[d]));
+  const pats=combos(candF.length>=need?candF:openIdx,need).map(p=>{const offs=[...p,...closed].sort((x,y)=>x-y);
+    const adj=offs.length===2&&((offs[0]+1)%7===offs[1]||(offs[1]+1)%7===offs[0]);return{p,offs,adj,sun:offs.includes(6)}});
+  const cap=[0,1,2,3,4,5,6].map(d=>open[d]?Math.max(0,N-req[d]):Infinity);const sunOpen=open[6];
+  // plano de domingos: cada pessoa recebe folga no domingo em semanas fixas do rodízio
+  // (de preferência a cada 3 semanas ou menos), sem passar da capacidade do domingo
+  let sunPlan=null;
+  if(sunOpen&&pats.some(P=>P.sun)){
+    const cand=[3,2,1].filter(m=>m<=L&&L%m===0);if(L>3)cand.push(L);
+    // o domingo pode ter mais folgas que os outros dias, desde que fique ao menos 1 pessoa do turno
+    // Mulheres marcadas (CLT, art. 386): domingo de folga pelo menos a cada 2 semanas.
+    // Com rodízio de 3 semanas elas folgam 2 domingos em cada 3; os demais seguem a regra normal.
+    const fem=cfg.fem||[],nF=fem.filter(Boolean).length,nM=N-nF,fRate=L===1?1:L===3?2/3:1/2;
+    const m=cand.find(m=>Math.ceil(nM/m)+Math.ceil(nF*fRate)<=Math.max(cap[6],N-1));
+    if(m){cap[6]=Math.max(cap[6],Math.ceil(nM/m)+Math.ceil(nF*fRate));let a=0,bm=0;const fm=L===3?3:L===1?1:2;const res=Array.from({length:N},(_,i)=>fem[i]?((a++ +seed)%fm):((bm++ +seed)%m));
+      sunPlan={must:(i,w)=>fem[i]?(L===1?true:L===3?w%3!==res[i]:w%2===res[i]):(w%m===res[i])}}
+  }
+  const mustSun=(i,w)=>!!sunPlan&&sunPlan.must(i,w);
+  function pass(init){
+    const st=init?init.map(x=>({...x})):Array.from({length:N},()=>({streak:0,semDom:0}));const weeks=[];
+    for(let w=0;w<L;w++){
+      const used=[0,0,0,0,0,0,0];const asg=new Array(N);
+      let order=[...Array(N).keys()].sort((x,y)=>(sunOpen?st[y].semDom-st[x].semDom:0)||(st[y].streak-st[x].streak)||(((x+w)%N)-((y+w)%N)));
+      if(noise&&rnd()<0.5)order.reverse();
+      if(sunPlan){const a=order.filter(i=>mustSun(i,w)),b=order.filter(i=>!mustSun(i,w));order=[...a,...b]}
+      for(const i of order){
+        let best=null,bs=-Infinity;
+        pats.forEach((P,pi)=>{
+          let over=0;P.p.forEach(d=>{if(used[d]>=cap[d])over++});
+          const first=P.offs.length?P.offs[0]:7;const viol=Math.max(0,st[i].streak+first-6);
+          let sc=-over*10000-viol*1000;
+          if(juntas&&!P.adj&&P.offs.length===2)sc-=60;
+          if(sunPlan){if(mustSun(i,w))sc+=P.sun?20000:0;else if(P.sun)sc-=400}
+          else if(sunOpen&&P.sun)sc+=st[i].semDom*25-10;
+          P.p.forEach(d=>{sc+=cap[d]===Infinity?0:((cap[d]-used[d])/Math.max(1,cap[d]))*12;if(ext)sc-=(ext[w][d]+used[d])*8});
+          sc+=((pi+i*3+w*2)%pats.length)*0.01+(noise?rnd()*noise:0);
+          if(sc>bs){bs=sc;best=P}
+        });
+        asg[i]=best;best.p.forEach(d=>used[d]++);
+        st[i].streak=best.offs.length?6-best.offs[best.offs.length-1]:st[i].streak+7;
+        st[i].semDom=best.sun?0:st[i].semDom+1;
+      }
+      weeks.push(asg);
+    }
+    return{weeks,st};
+  }
+  let pp=pass(null);for(let q=0;q<3;q++)pp=pass(pp.st);const res=pp.weeks;
+  const cov=res.map(asg=>[0,1,2,3,4,5,6].map(d=>open[d]?N-asg.filter(P=>P.offs.includes(d)).length:0));
+  const covFail=cov.some(row=>row.some((v,d)=>open[d]&&v<N-cap[d]));
+  let maxRun=0,maxSunGap=0;const runBad=new Set();
+  for(let i=0;i<N;i++){
+    const seq=[];for(let r=0;r<2;r++)res.forEach(asg=>{for(let d=0;d<7;d++)seq.push(asg[i].offs.includes(d)?0:1)});
+    let run=0,mr=0;seq.forEach(x=>{run=x?run+1:0;mr=Math.max(mr,run)});if(mr>6)runBad.add(i);maxRun=Math.max(maxRun,Math.min(mr,7*L));
+    if(sunOpen){const sw=res.map(asg=>asg[i].sun);if(!sw.some(Boolean))maxSunGap=Infinity;else{let g=0,mg=0;[...sw,...sw].forEach(x=>{g=x?0:g+1;mg=Math.max(mg,g)});maxSunGap=Math.max(maxSunGap,mg+1)}}
+  }
+  const splitN=res.reduce((s,asg)=>s+asg.filter(P=>P.offs.length===2&&!P.adj).length,0);
+  // concentração de folgas no mesmo dia, somando os outros turnos
+  let spread=0;res.forEach((asg,w)=>{for(let d=0;d<7;d++){if(!open[d])continue;const n=asg.filter(P=>P.p.includes(d)).length+(ext?ext[w][d]:0);spread+=n*n}});
+  return{weeks:res,covFail,maxRun,runBad,maxSunGap,splitN,spread};
+}
+function melhor(cfg,juntas){
+  const cost=x=>(x.covFail?1e6:0)+x.runBad.size*1e4+(x.maxSunGap===Infinity?99:x.maxSunGap)*100+(juntas?x.splitN:0)+x.spread*0.5;
+  let r=null,bc=Infinity;const tries=cfg.N*cfg.L>300?10:30;
+  for(let sd=0;sd<tries;sd++){for(const fs of (juntas?[false,true]:[true])){const x=gerar({...cfg,juntas},fs,sd+(cfg.v||0)*41);const c=cost(x);if(c<bc){bc=c;r=x}}}
+  return r;
+}
+function sugerirTurnos(){
+  const e=S.e;const seis=e.turnos.length>0&&e.turnos.every(t=>t.seis);const A=toMin(e.abre),rawF=toMin(e.fecha),F=e.noturno&&rawF<=A?rawF+1440:rawF;const span=shiftTimes({...novoTurno(e.abre,1),seis},0).s-A;
+  const k=e.dias.filter(Boolean).length||7;const porTurno=Math.ceil(k*Math.max(1,e.min)/5);
+  let ent;const len=F-A;
+  if(len<=span)ent=[A];else if(len<=2*span)ent=[A,F-span];else{const T=Math.ceil(len/span);ent=Array.from({length:T},(_,i)=>Math.round(A+i*(F-span-A)/(T-1)))}
+  const total=e.tot;
+  if(ent.length>total)ent=ent.slice(0,Math.max(1,total));e.turnos=ent.map(x=>({...novoTurno(hhmm(x),0),seis}));distribuir();
+  return total<porTurno*ent.length?`Turnos sugeridos. O ideal seria ao menos ${porTurno*ent.length} pessoas`:'Turnos sugeridos';
+}
+function totalAtual(){return S.e.turnos.reduce((s,t)=>s+t.n,0)}
+function distribuir(){const e=S.e;const T=e.turnos.length;e.tot=Math.max(T,Math.min(200,e.tot|0||T));const base=Math.floor(e.tot/T);let r=e.tot-base*T;e.turnos.forEach(t=>{t.n=base+(r-->0?1:0);t.cob=0})}
+function ajustarTurno(i,v){const e=S.e,T=e.turnos.length;if(T===1){e.turnos[0].n=e.tot;return}
+  v=Math.max(1,Math.min(e.tot-(T-1),v|0||1));let diff=v-e.turnos[i].n;e.turnos[i].n=v;
+  for(let j=T-1;j>=0&&diff!==0;j--){if(j===i)continue;const t=e.turnos[j];if(diff>0){const take=Math.min(diff,t.n-1);t.n-=take;diff-=take}else{t.n-=diff;diff=0}}}
+function nomesLista(N){const ls=S.e.nomes.split('\n').map(s=>s.trim()).filter(Boolean);return Array.from({length:N},(_,i)=>ls[i]||('COLABORADOR '+String(i+1).padStart(2,'0')))}
+function atualizarNomeDireto(i,nome,N){const lista=nomesLista(N),padrao='COLABORADOR '+String(i+1).padStart(2,'0');lista[i]=UPC((nome||'').trim())||padrao;S.e.nomes=lista.join('\n');renderAll();toast('Nome atualizado')}
+let lastE=null;
+function renderTurnos(){
+  const e=S.e;
+  $('e-turnos').innerHTML=e.turnos.map((t,i)=>{const h=shiftTimes(t,0);return`<div class="turno"><div class="turno-card-head"><strong>Turno ${i+1}</strong><button type="button" class="turno-remove" data-remove="${i}" ${e.turnos.length<2?'disabled':''} aria-label="Excluir turno ${i+1}" title="${e.turnos.length<2?'É necessário manter ao menos um turno':'Excluir este turno'}">× Excluir</button></div><label class="turno-field"><span class="t">Pessoas</span><input type="number" id="e-n-${i}" data-turno-field="n" data-i="${i}" min="0" max="${e.tot}" value="${t.n||''}" ${e.turnos.length<2?'disabled':''} aria-label="Pessoas no turno ${i+1}"></label><label class="turno-field"><span class="t">Entrada</span><input type="time" id="e-t-${i}" data-turno-field="entrada" data-i="${i}" value="${t.entrada}" aria-label="Entrada do turno ${i+1}"></label><label class="check turno-output" style="font-size:.84rem;margin:2px 0 -2px"><input type="checkbox" data-turno-seis="${i}" ${t.seis?'checked':''}> Turno de 6 horas (30 h semanais)</label><div class="turno-field turno-output"><span class="t">Saída calculada</span><div class="saida-wrap"><div class="saida" aria-label="Saída calculada do turno ${i+1}">${h.ok?hhmm(h.s):'—'}</div>${h.ok&&h.s>=1440?'<div class="virada">no dia seguinte</div>':''}</div></div></div>`}).join('');
+  $('e-turnos').querySelectorAll('[data-turno-field]').forEach(inp=>inp.onchange=()=>{const i=+inp.dataset.i,k=inp.dataset.turnoField;if(k==='n')ajustarTurno(i,+inp.value);else if(k==='entrada'&&inp.value)e.turnos[i].entrada=inp.value;renderAll()});
+  $('e-turnos').querySelectorAll('[data-turno-seis]').forEach(c=>c.onchange=()=>{e.turnos[+c.dataset.turnoSeis].seis=c.checked;renderAll()});
+  $('e-turnos').querySelectorAll('[data-remove]').forEach(btn=>btn.onclick=()=>{if(e.turnos.length<2)return;e.turnos.splice(+btn.dataset.remove,1);distribuir();renderAll();toast('Turno excluído')});
+}
+// Simula a contratação: soma uma pessoa por vez no turno que mais reduz a falta,
+// até cobrir o mínimo em todo o funcionamento.
+function faltaTotal(R){const e=S.e,open=e.dias.map(Boolean),M=Math.max(0,e.min|0);let n=0;for(let w=0;w<+e.sem;w++)for(let d=0;d<7;d++){if(!open[d])continue;for(const[a,b]of R.slots){const mid=(a+b)/2;if(R.noAlmoco(mid)||(R.fechadoDia&&R.fechadoDia(d,mid)))continue;const p=R.presence(w,d,mid);if(p<M)n+=M-p}}return n}
+const simCache=new Map();
+// modo 'normal': contrata no mesmo horário de intervalo do turno.
+// modo 'cob': (sem revezamento) também pode contratar quem almoça no 2º horário, para cobrir o almoço da equipe.
+function simularContratacao(opt){
+  opt=opt||{};const key=JSON.stringify([S.reg,S.e,opt]);if(simCache.has(key))return simCache.get(key);
+  const bakE=S.e,bakSem=S.semana;let out;
+  try{
+    let cur=JSON.parse(JSON.stringify(bakE));if(opt.rev!=null)cur.rev=opt.rev;cur.turnos.forEach(t=>t.cob=Math.min(t.cob||0,t.n));
+    S.e=cur;let curD=faltaTotal(nucleoEscala());const add=cur.turnos.map(()=>0),addCob=cur.turnos.map(()=>0);let stall=0;
+    for(let step=0;step<60&&curD>0;step++){
+      let best=null,bestD=Infinity;
+      for(let i=0;i<cur.turnos.length;i++)for(const cob of (opt.cob?[false,true]:[false])){const c=JSON.parse(JSON.stringify(cur));c.turnos[i].n++;if(cob)c.turnos[i].cob=(c.turnos[i].cob||0)+1;c.tot++;S.e=c;const d=faltaTotal(nucleoEscala());if(d<bestD){bestD=d;best={c,i,cob}}}
+      if(!best)break;stall=bestD<curD?0:stall+1;cur=best.c;(best.cob?addCob:add)[best.i]++;curD=bestD;if(stall>=4)break}
+    const extra=add.reduce((a,b)=>a+b,0)+addCob.reduce((a,b)=>a+b,0);
+    out=curD===0?{ok:true,extra,total:bakE.tot+extra,add,addCob,turnos:cur.turnos.map(t=>({n:t.n,cob:t.cob||0}))}:{ok:false};
+  }catch(err){console.error(err);out={ok:false}}
+  finally{S.e=bakE;S.semana=bakSem}
+  simCache.set(key,out);if(simCache.size>30)simCache.delete(simCache.keys().next().value);return out}
+function textoContratacao(r){const e=S.e,alt=shiftTimes(e.turnos[0],1),base=shiftTimes(e.turnos[0],0);const partes=[];
+  r.add.forEach((n,i)=>{if(n)partes.push(`+${n} no turno ${i+1} (entrada ${e.turnos[i].entrada})`)});
+  r.addCob.forEach((n,i)=>{if(n){const h=shiftTimes(e.turnos[i],1);partes.push(`+${n} no turno ${i+1} (entrada ${e.turnos[i].entrada}) com intervalo das ${hhmm(h.ls)} às ${hhmm(h.le)}`)}});
+  return partes.length>1||e.turnos.length>1||r.addCob.some(Boolean)?': '+partes.join('; '):''}
+function aplicarContratacao(r){S.e.tot=r.total;r.turnos.forEach((t,i)=>{if(S.e.turnos[i]){S.e.turnos[i].n=t.n;S.e.turnos[i].cob=t.cob}});renderAll();toast(`Escala refeita com ${r.total} colaboradores`)}
+const BTN='class="btn" style="margin-top:8px;padding:5px 12px;font-size:.84rem"';
+const BTN_CUSTO='class="btn" style="margin-top:8px;padding:5px 12px;font-size:.84rem;background:#C94F2D;border-color:#C94F2D;color:#fff"';
+const txtCusto=n=>`Calcular o custo de contratar ${n} colaborador${n>1?'es':''}`;
+// Leva para a Calcular Custo com a quantidade a contratar já preenchida (em laranja).
+function irParaCusto(n){setTab('custo');try{history.replaceState(null,'','#custo')}catch(e){}window.scrollTo({top:0,behavior:'smooth'});
+  const f=$('custo-frame');const go=()=>{try{f.contentWindow.ctpSetQuantidade(n);resizeCusto()}catch(e){}};
+  try{if(f.contentWindow&&f.contentWindow.ctpSetQuantidade)go();else f.addEventListener('load',go,{once:true})}catch(e){f.addEventListener('load',go,{once:true})}
+  toast(`Informe o salário e os benefícios para ver o custo de ${n} colaborador${n>1?'es':''}`,4500)}
+function mostrarContratacao(){const el=$('e-contratar');if(!el)return;const e=S.e,FA=almocoFixo();
+  const semRev=!FA&&!e.rev&&e.turnos.some(t=>t.n>1);
+  if(!semRev){const r=simularContratacao();
+    if(!r.ok){el.innerHTML='Só aumentar a equipe não resolve: os turnos não cobrem todo o horário de funcionamento. Clique em “PROCESSAR” ou ajuste os turnos em Opções avançadas.';return}
+    el.innerHTML=`Para cobrir todo o funcionamento, contrate mais <b>${r.extra} colaborador${r.extra>1?'es':''}</b>${textoContratacao(r)}. A equipe ficaria com <b>${r.total}</b> pessoas.<br><button type="button" ${BTN_CUSTO} id="e-aplicar-contr">${txtCusto(r.extra)}</button>`;
+    $('e-aplicar-contr').onclick=()=>irParaCusto(r.extra);return}
+  // Sem revezamento: duas saídas — revezar o almoço ou contratar sem mexer no almoço da equipe
+  const rv=simularContratacao({rev:true}),ct=simularContratacao({cob:true});
+  let h='<span style="display:block;margin-bottom:4px">Você tem duas opções:</span>';
+  h+='<span style="display:block;margin-top:6px"><b>1. Revezar o almoço da equipe</b> — ';
+  h+=rv.ok?(rv.extra===0?'a equipe atual já cobre todo o funcionamento, sem contratar ninguém.':`com o revezamento, ainda é preciso contratar mais <b>${rv.extra}</b> colaborador${rv.extra>1?'es':''} (equipe de ${rv.total}).`):'mesmo revezando, os turnos não cobrem todo o horário.';
+  h+=`<br><button type="button" ${BTN} id="e-op-rev">Revezar o almoço${rv.ok&&rv.extra?` e usar ${rv.total} colaboradores`:''}</button></span>`;
+  h+='<span style="display:block;margin-top:10px"><b>2. Contratar sem mexer no almoço da equipe</b> — ';
+  h+=ct.ok?`contrate mais <b>${ct.extra} colaborador${ct.extra>1?'es':''}</b>${textoContratacao(ct)}. A equipe ficaria com <b>${ct.total}</b> pessoas e o intervalo atual de todos continua igual.<br><button type="button" ${BTN_CUSTO} id="e-op-ct">${txtCusto(ct.extra)}</button>`:'só contratar não resolve: ajuste os turnos em Opções avançadas.';
+  h+='</span>';el.innerHTML=h;
+  $('e-op-rev').onclick=()=>{if(rv.ok&&rv.extra){S.e.rev=true;aplicarContratacao(rv)}else{S.e.rev=true;renderAll();toast('Revezamento do almoço ativado')}};
+  if(ct.ok)$('e-op-ct').onclick=()=>irParaCusto(ct.extra)}
+// Cálculo da escala sem desenhar a tela (também usado para simular contratações).
+function nucleoEscala(){
+  const e=S.e;const FA=almocoFixo();const open=e.dias.map(Boolean);const k=open.filter(Boolean).length;const L=+e.sem;const M=Math.max(0,e.min|0);
+  const A=toMin(e.abre),rawF=toMin(e.fecha),F=e.noturno&&rawF<=A?rawF+1440:rawF;
+  // trabalhadores e escala por turno
+  const workers=[];const weeks=Array.from({length:L},()=>[]);let maxRun=0,maxSunGap=0,runBad=0,splitN=0;
+  const ext=Array.from({length:L},()=>[0,0,0,0,0,0,0]); // folgas já marcadas pelos outros turnos
+  const noOff=[0,1,2,3,4,5,6].map(d=>!!(e.dif&&e.dif.ativo&&open[d]&&e.dif.dias&&e.dif.dias[d]&&e.dif.dias[d].semFolga)),nNoOff=noOff.filter(Boolean).length;
+  e.turnos.forEach((t,ti)=>{const N=t.n;const r=Math.min(N,Math.floor(5*N/k));const kk=k-nNoOff,offDia=kk>0?Math.ceil(N*Math.max(0,k-5)/kk):N;const req=open.map((o,d)=>!o?0:nNoOff?(noOff[d]?N:Math.max(0,N-offDia)):r);
+    const femT=e.fem&&e.femMarks?Array.from({length:N},(_,j)=>!!e.femMarks[workers.length+j]):[];const res=melhor({N,open,req,L,v:e.v||0,ext:ext.map(x=>x.slice()),fem:femT,noOff},e.juntas);res.weeks.forEach((asg,w)=>asg.forEach(P=>P.p.forEach(d=>ext[w][d]++)));
+    for(let j=0;j<N;j++){const cob=Math.min(t.cob||0,N),g=FA?0:(e.rev&&N>1?j%2:(j>=N-cob?1:0));workers.push({ti,g,turno:t,entrada:t.entrada,h:shiftTimes(t,g)});res.weeks.forEach((asg,w)=>weeks[w].push(asg[j]))}
+    maxRun=Math.max(maxRun,res.maxRun);maxSunGap=Math.max(maxSunGap,res.maxSunGap);runBad+=res.runBad.size;splitN+=res.splitN});
+  const N=workers.length;const names=nomesLista(N);
+  if(S.semana>=L)S.semana=0;
+  // Horário de atendimento por dia (opção "dia com horário diferente").
+  const difOn=!!(e.dif&&e.dif.ativo),noct=!!e.noturno;
+  const J=[0,1,2,3,4,5,6].map(d=>{const x=difOn&&e.dif.dias&&e.dif.dias[d];if(x&&open[d]&&x.abre&&x.fecha){let a=toMin(x.abre),f=toMin(x.fecha);if(noct&&f<=a)f+=1440;if(f>a)return{a,f,esp:true}}return{a:A,f:F,esp:false}});
+  const fechadoDia=(d,mid)=>mid<J[d].a||mid>=J[d].f;
+  const credito=h=>creditBetween(h.E,h.ls,noct)+creditBetween(h.le,h.s,noct);
+  workers.forEach(wk=>{wk.hg=[shiftTimes(wk.turno,0),shiftTimes(wk.turno,1)]});
+  // No dia diferente a pessoa entra e sai junto com o atendimento (sem intervalo até 6 h).
+  const turnoDia=(i,g,d)=>{const base=workers[i].hg[g]||workers[i].hg[0];if(!J[d].esp)return base;const W0=J[d].a,W1=J[d].f,len=base.s-base.E,alm=base.le-base.ls;
+    if(W1-W0<=len){const span=W1-W0;if(span-15>360&&alm>0){let ls=base.ls;if(ls<W0+60||ls+alm>W1-60)ls=W0+Math.round((span-alm)/60)*30;return{...base,E:W0,ls,le:ls+alm,s:W1,esp:true}}if(span>240){const a=W0+Math.round((span-15)/2/15)*15;return{...base,E:W0,ls:a,le:a+15,s:W1,esp:true,curto:true}}return{...base,E:W0,ls:W1,le:W1,s:W1,esp:true}}
+    const st=Math.min(Math.max(base.E,W0),W1-len),off=st-base.E;return{...base,E:st,ls:base.ls+off,le:base.le+off,s:base.s+off,esp:true}};
+  // Horas que faltam no dia diferente: diluídas em todos os outros dias de trabalho da semana,
+  // dando preferência a ficar dentro do horário de atendimento (sai mais tarde ou entra mais cedo).
+  const comp=Array.from({length:L},(_,w)=>workers.map((wk,i)=>{const out={};if(!difOn||e.dif.compensar===false||wk.turno.seis)return out;/* turno de 6 h nunca passa de 6 h por dia */const dias=[0,1,2,3,4,5,6].filter(d=>open[d]&&!weeks[w][i].offs.includes(d));const esp=dias.filter(d=>J[d].esp),norm=dias.filter(d=>!J[d].esp);if(!esp.length||!norm.length)return out;
+    let falta=esp.reduce((t,d)=>t+Math.max(0,credito(wk.hg[wk.g])-credito(turnoDia(i,wk.g,d))),0);if(falta<=0)return out;
+    const base=wk.hg[wk.g],room={};norm.forEach(d=>{room[d]=Math.max(0,J[d].f-base.s)+Math.max(0,base.E-J[d].a);out[d]=0});
+    // distribuição por igual, respeitando o espaço livre de cada dia (o que sobrar é dividido por igual)
+    let rest=falta,livres=norm.filter(d=>room[d]>0);for(let k=0;k<7&&rest>0.5&&livres.length;k++){const q=rest/livres.length;let usado=0;livres.forEach(d=>{const v=Math.min(q,room[d]-out[d]);out[d]+=v;usado+=v});rest-=usado;livres=livres.filter(d=>room[d]-out[d]>0.5)}
+    if(rest>0.5)norm.forEach(d=>out[d]+=rest/norm.length);
+    norm.forEach(d=>{let c=Math.round(out[d]);const pos=Math.min(c,Math.max(0,J[d].f-base.s));c-=pos;const pre=Math.min(c,Math.max(0,base.E-J[d].a));c-=pre;out[d]={pre,pos:pos+c,tot:Math.round(out[d])}});
+    return out}));
+  const horasDia=(w,d,i,g)=>{if(J[d].esp)return turnoDia(i,g,d);const base=workers[i].hg[g]||workers[i].hg[0],c=comp[w][i][d];return c&&c.tot>0?{...base,E:base.E-c.pre,s:c.pos>0?endForCredit(base.s,c.pos,noct):base.s,comp:c.tot}:base};
+  // cobertura por meia hora
+  const SA=Math.min(...[0,1,2,3,4,5,6].filter(d=>open[d]).map(d=>J[d].a),A),SF=Math.max(...[0,1,2,3,4,5,6].filter(d=>open[d]).map(d=>J[d].f),F);
+  const slots=[];for(let m=SA;m<SF;m+=30)slots.push([m,Math.min(SF,m+30)]);
+  const displaySlots=slots;
+  // O horário de almoço pode variar por dia. Assim o revezamento considera
+  // somente quem realmente está escalado naquele dia, inclusive nas folgas.
+  const dayGroups=Array.from({length:L},()=>Array.from({length:7},()=>Array(N).fill(0)));
+  const dayHours=Array.from({length:L},()=>Array.from({length:7},()=>Array(N).fill(null)));
+  for(let w=0;w<L;w++)for(let d=0;d<7;d++){
+    const active=[...Array(N).keys()].filter(i=>open[d]&&!weeks[w][i].offs.includes(d));
+    // Cada pessoa começa sempre com o seu grupo padrão de almoço na semana.
+    active.forEach(i=>{const g=workers[i].g;dayGroups[w][d][i]=g;dayHours[w][d][i]=horasDia(w,d,i,g)});
+  }
+  const presence=(w,d,mid)=>workers.reduce((s,wk,i)=>{if(weeks[w][i].offs.includes(d))return s;const h=dayHours[w][d][i]||wk.h;return s+(((mid>=h.E&&mid<h.ls)||(mid>=h.le&&mid<h.s))?1:0)},0);
+  const noAlmoco=mid=>FA&&mid>=FA.a&&mid<FA.b;
+  const dayLunchOutages=(w,d)=>{if(FA||!open[d])return 0;let n=0;for(const[a,b]of slots){const mid=(a+b)/2;if(fechadoDia(d,mid))continue;const scheduled=workers.some((wk,i)=>!weeks[w][i].offs.includes(d)&&mid>=(dayHours[w][d][i]||wk.h).E&&mid<(dayHours[w][d][i]||wk.h).s);if(scheduled&&presence(w,d,mid)===0)n++}return n};
+  // Falta de cobertura no dia: pessoas abaixo do mínimo em cada meia hora
+  // (peso alto quando não sobra ninguém). Guia o revezamento do intervalo.
+  const dayShort=(w,d)=>{if(FA||!open[d])return 0;let n=0;for(const[a,b]of slots){const mid=(a+b)/2;if(noAlmoco(mid)||fechadoDia(d,mid))continue;const p=presence(w,d,mid);if(p<M)n+=M-p;const scheduled=workers.some((wk,i)=>!weeks[w][i].offs.includes(d)&&mid>=(dayHours[w][d][i]||wk.h).E&&mid<(dayHours[w][d][i]||wk.h).s);if(scheduled&&p===0)n+=100}return n};
+  // Mantém o intervalo padrão de cada pessoa e altera somente o menor número
+  // necessário de horários no dia para atingir o mínimo no local.
+  if(!FA&&e.rev&&N>1)for(let w=0;w<L;w++)for(let d=0;d<7;d++){
+    const active=[...Array(N).keys()].filter(i=>open[d]&&!weeks[w][i].offs.includes(d));let score=dayShort(w,d);
+    if(score&&active.length<=12){let bestMask=0,bestScore=score,bestChanges=0;
+      for(let mask=1;mask<(1<<active.length);mask++){active.forEach((i,p)=>{const g=workers[i].g^((mask>>p)&1);dayGroups[w][d][i]=g;dayHours[w][d][i]=horasDia(w,d,i,g)});const next=dayShort(w,d),changes=mask.toString(2).replace(/0/g,'').length;if(next<bestScore||(next===bestScore&&changes<bestChanges)){bestMask=mask;bestScore=next;bestChanges=changes}}
+      active.forEach((i,p)=>{const g=workers[i].g^((bestMask>>p)&1);dayGroups[w][d][i]=g;dayHours[w][d][i]=horasDia(w,d,i,g)});
+    }else if(score){const changed=new Set();while(score>0){let pick=-1,pickScore=score;for(const i of active){if(changed.has(i))continue;const old=dayGroups[w][d][i];dayGroups[w][d][i]=old?0:1;dayHours[w][d][i]=horasDia(w,d,i,dayGroups[w][d][i]);const next=dayShort(w,d);dayGroups[w][d][i]=old;dayHours[w][d][i]=horasDia(w,d,i,old);if(next<pickScore){pick=i;pickScore=next}}if(pick<0)break;changed.add(pick);dayGroups[w][d][pick]=dayGroups[w][d][pick]?0:1;dayHours[w][d][pick]=horasDia(w,d,pick,dayGroups[w][d][pick]);score=pickScore}}
+  }
+  const lunchOutages=()=>{let n=0;for(let w=0;w<L;w++)for(let d=0;d<7;d++)n+=dayLunchOutages(w,d);return n};
+  const lunchGapCount=lunchOutages();
+  const gaps=[];let minSeen=Infinity;
+  for(let w=0;w<L;w++)for(let d=0;d<7;d++){if(!open[d])continue;let cur=null;
+    slots.forEach(([a,b])=>{if(noAlmoco((a+b)/2)||fechadoDia(d,(a+b)/2)){cur=null;return}const p=presence(w,d,(a+b)/2);minSeen=Math.min(minSeen,p);if(p<M){if(cur&&cur.b===a){cur.b=b;cur.p=Math.min(cur.p,p)}else{cur={w,d,a,b,p};gaps.push(cur)}}else cur=null})}
+  return{workers,weeks,maxRun,maxSunGap,runBad,splitN,N,names,slots,displaySlots,dayGroups,dayHours,presence,noAlmoco,dayLunchOutages,lunchGapCount,gaps,minSeen,J,fechadoDia,SA,SF,comp,difOn,credito,noOff};
+}
+function renderDif(){const e=S.e;if(!e.dif)e.dif={ativo:false,dias:{}};const dif=e.dif;$('e-dif').checked=!!dif.ativo;$('e-dif-box').hidden=!dif.ativo;const comp=dif.compensar!==false;$('e-dif-comp').checked=comp;
+  $('e-dif-hint').innerHTML=comp?`<b>Marcado:</b> as horas que faltam são distribuídas nos outros dias, entrando mais cedo ou saindo mais tarde, para fechar ${S.reg} h.`:`<b>Desmarcado:</b> nesse dia a pessoa trabalha menos, os outros dias não mudam e a semana fica abaixo de ${S.reg} h.`;
+  $('e-dif-dias').innerHTML=DN.map((n,d)=>{const on=!!dif.dias[d],ab=!!e.dias[d];return`<label style="${ab?'':'opacity:.35;cursor:not-allowed'}" title="${ab?'':'A empresa não funciona neste dia'}"><input type="checkbox" data-dif-dia="${d}" ${on?'checked':''} ${ab?'':'disabled'}>${n}</label>`}).join('');
+  $('e-dif-dias').querySelectorAll('[data-dif-dia]').forEach(c=>c.onchange=()=>{const d=+c.dataset.difDia;if(c.checked)dif.dias[d]={abre:e.abre,fecha:hhmm(toMin(e.abre)+240)};else delete dif.dias[d];renderAll()});
+  const ds=Object.keys(dif.dias).map(Number).sort((a,b)=>a-b);
+  $('e-dif-rows').innerHTML=ds.length?ds.map(d=>{const x=dif.dias[d],off=!e.dias[d];return`<div style="${off?'opacity:.5':''}"><span class="t" style="display:block;color:var(--green-ink);font-weight:700;margin-bottom:2px">${DF[d]}${off?' (fechado)':''}</span><div class="row"><div class="fld"><label class="t" for="e-dif-a-${d}" style="font-weight:400">Abre</label><input type="time" id="e-dif-a-${d}" data-dif-abre="${d}" value="${x.abre||''}"></div><div class="fld"><label class="t" for="e-dif-f-${d}" style="font-weight:400">Fecha</label><input type="time" id="e-dif-f-${d}" data-dif-fecha="${d}" value="${x.fecha||''}"></div></div><label class="check" style="font-size:.88rem;margin-top:8px"><input type="checkbox" data-dif-sf="${d}" ${x.semFolga?'checked':''}> Todos trabalham neste dia (sem folga)</label></div>`}).join(''):'<p class="hint">Marque acima o dia com horário diferente.</p>';
+  $('e-dif-rows').querySelectorAll('[data-dif-abre]').forEach(inp=>inp.onchange=()=>{if(inp.value){dif.dias[+inp.dataset.difAbre].abre=inp.value;renderAll()}});
+  $('e-dif-rows').querySelectorAll('[data-dif-sf]').forEach(c=>c.onchange=()=>{dif.dias[+c.dataset.difSf].semFolga=c.checked;renderAll()});
+  $('e-dif-rows').querySelectorAll('[data-dif-fecha]').forEach(inp=>inp.onchange=()=>{if(inp.value){dif.dias[+inp.dataset.difFecha].fecha=inp.value;renderAll()}})}
+function renderE(){
+  const e=S.e;if(!e.femMarks)e.femMarks={};
+  if(e.semFemAuto){e.sem=e.semFemAntes||3;e.semFemAuto=false;S.semana=0}if(totalAtual()!==e.tot)distribuir();atualizarVoltaIntervalo();if(document.activeElement!==$('e-tot'))$('e-tot').value=e.tot;$('e-abre').value=e.abre;$('e-fecha').value=e.fecha;$('e-noturno').checked=!!e.noturno;$('e-virada-hint').hidden=!e.noturno;if(document.activeElement!==$('e-min'))$('e-min').value=e.min;$('e-sem').value=e.sem;$('e-juntas').checked=e.juntas;$('e-rev').checked=e.rev;$('e-fem').checked=!!e.fem;$('e-fem-hint').hidden=!e.fem;$('e-fa').checked=e.fa;$('e-fa-box').hidden=!e.fa;$('e-fa-ini').value=e.faIni;$('e-fa-fim').value=e.faFim;
+  $('e-alm-por-dur').checked=e.almModo==='dur';$('e-alm-dur-box').hidden=e.almModo!=='dur';$('e-alm-hora-box').hidden=e.almModo==='dur';$('e-alm-ini').value=e.almIni||'';$('e-alm-fim').value=e.almFim||'';$('e-alm-fim').readOnly=e.almModo==='dur';$('e-alm-fim').setAttribute('aria-readonly',e.almModo==='dur'?'true':'false');if(document.activeElement!==$('e-alm-dur'))$('e-alm-dur').value=e.almDur?durCampo(e.almDur):'';
+  const alm=duracaoIntervaloTurno(),intervalControls=[$('e-alm-ini'),$('e-alm-fim'),$('e-alm-por-dur'),$('e-alm-dur'),$('e-rev')];intervalControls.forEach(x=>x.disabled=!!e.fa);document.querySelector('.company-interval').hidden=!!e.fa;$('e-rev').closest('label').style.opacity=e.fa?.5:1;
+  $('e-alm-exp').textContent=e.fa?'A empresa fecha para o almoço; o horário de fechamento informado acima terá prioridade e não haverá revezamento.':e.almModo==='dur'?(alm>0?`Intervalo de ${dur(alm)} no meio da jornada de cada turno, para ninguém trabalhar mais de 6 horas seguidas.${e.rev?' O sistema revezará os horários para manter o atendimento.':' Sem revezamento: todos do turno fazem o intervalo no mesmo horário.'}`:'Informe a duração no formato 1:30 ou 2:00.'):(e.almIni&&e.almFim&&alm>0?`Intervalo das ${e.almIni} às ${e.almFim}, com duração de ${dur(alm)}.${e.rev?' O sistema revezará os horários para manter o atendimento.':' Sem revezamento: todos usarão esse mesmo intervalo.'}`:'Informe o início e a volta do intervalo.');
+  if(document.activeElement!==$('e-nomes'))$('e-nomes').value=e.nomes;
+  renderDif();
+  renderTurnos();
+  const FA=almocoFixo();
+  const open=e.dias.map(Boolean);const k=open.filter(Boolean).length;const L=+e.sem;const M=Math.max(0,e.min|0);
+  const clear=()=>{['e-figs','e-checks','e-weeks','e-tab','e-heat','e-aviso8'].forEach(id=>$(id).innerHTML='');['e-pdf','e-salvar'].forEach(id=>{const b=$(id);if(b){b.disabled=false;b.title=''}});lastE=null};
+  if(k<5){$('e-status').innerHTML=`<div class="status bad">Marque ao menos 5 dias de funcionamento para encaixar a jornada em 5 dias.</div>`;clear();return}
+  const A=toMin(e.abre),rawF=toMin(e.fecha),F=e.noturno&&rawF<=A?rawF+1440:rawF;
+  if(!(F>A)){$('e-status').innerHTML=`<div class="status bad">O horário de fechamento precisa ser depois da abertura. Para fechar no dia seguinte, marque “Funcionamento noturno”.</div>`;clear();return}
+  if(FA&&!(FA.ok&&FA.a>A&&FA.b<F)){$('e-status').innerHTML=`<div class="status bad">O fechamento para o almoço precisa ficar dentro do horário de funcionamento, com a reabertura depois do fechamento.</div>`;clear();return}
+  if(!FA&&!(alm>0)){$('e-status').innerHTML=`<div class="status bad">Informe um intervalo válido em “Dados da Empresa”.</div>`;clear();return}
+  const{workers,weeks,maxRun,maxSunGap,runBad,splitN,N,names,slots,displaySlots,dayGroups,dayHours,presence,noAlmoco,dayLunchOutages,lunchGapCount,gaps,minSeen,J,fechadoDia,SA,SF,comp,difOn,credito,noOff}=nucleoEscala();
+  // status
+  const anyBad=gaps.length>0;
+  $('e-status').innerHTML=anyBad?`<div class="status bad" style="flex-direction:column;align-items:flex-start;gap:6px"><span>Faltam pessoas em ${gaps.length} período${gaps.length>1?'s':''} do funcionamento.</span><span id="e-contratar" style="font-weight:600;color:var(--ink)">Calculando quantos colaboradores faltam…</span></div>`
+    :`<div class="status ok">✓ ${N} colaboradores · mínimo de ${M} pessoa${M!==1?'s':''} no local em todo o funcionamento, ${L>1?'em todas as semanas':'todos os dias'}.</div>`;
+  $('e-figs').innerHTML=`<div>Colaboradores<b>${N}</b></div><div>Turnos<b>${e.turnos.length}</b></div><div>Dias seguidos (máx.)<b>${maxRun}</b></div><div>Domingo de folga<b>${!open[6]?'todos':(maxSunGap===Infinity?'nunca':'a cada '+maxSunGap+' sem')}</b></div>`;
+  const C=[];
+  gaps.slice(0,4).forEach(g=>C.push(li('bad',`${L>1?'Semana '+(g.w+1)+', ':''}${DF[g.d].toLowerCase()} das ${hhmm(g.a)} às ${hhmm(g.b)}: ${g.p} de ${M} pessoas.`)));
+  if(gaps.length>4)C.push(li('bad',`E mais ${gaps.length-4} período(s). Ajuste as pessoas por turno e clique em “PROCESSAR”.`));
+  const fora=e.turnos.filter(t=>{const h=shiftTimes(t,0);return h.E<A||h.s>F});
+  if(fora.length)C.push(li('info',`${fora.length===1?'Um turno começa ou termina':'Alguns turnos começam ou terminam'} fora do horário de funcionamento.`));
+  const ruins=e.turnos.filter(t=>!shiftTimes(t,0).ok);
+  if(ruins.length)C.push(li('bad',FA?`${ruins.length===1?'O turno das '+ruins[0].entrada+' não encaixa':'Alguns turnos não encaixam'} no fechamento para almoço.`:'Revise o intervalo em “Dados da Empresa”: ele precisa ficar dentro da jornada de todos os turnos.'));
+  const duracoes=[duracaoIntervaloTurno()].filter(Number.isFinite);
+  if(duracoes.some(v=>v>0&&v<60))C.push(li('bad','Há intervalo menor que 1 hora. Para jornada acima de 6 h o mínimo é 1 h.'));
+  if(duracoes.some(v=>v>120))C.push(li('warn','Há intervalo acima de 2 horas; confirme se existe acordo escrito ou convenção coletiva.'));
+  const longo=e.turnos.filter(t=>{const h=shiftTimes(t,0);return h.ok&&(h.manha>360||h.tard>360)});
+  if(longo.length)C.push(li('warn','Algum turno fica mais de 6 horas seguidas sem intervalo antes ou depois do almoço.'));
+  if(runBad)C.push(li('warn',`${runBad} pessoa(s) passam de 6 dias seguidos de trabalho na virada das semanas. Tente outro rodízio.`));
+  const diasSF=[0,1,2,3,4,5,6].filter(d=>noOff&&noOff[d]);
+  if(diasSF.length)C.push(li('info',`${diasSF.map(d=>DF[d]).join(', ')}: todos trabalham (sem folga). As folgas ficam nos outros dias.`));
+  if(noOff&&noOff[6]&&open[6])C.push(li('warn','Todos trabalham no domingo: ninguém tem folga dominical. A lei pede folga no domingo periodicamente (no comércio, ao menos a cada 3 semanas). Confira a convenção coletiva da categoria.'));
+  else if(open[6]){if(maxSunGap===Infinity)C.push(li('warn',L===1?'Com folgas fixas, há pessoas que nunca folgam no domingo. Escolha um rodízio de 2 ou 3 semanas.':'Há pessoas sem domingo de folga no rodízio. Aumente as pessoas do turno ou escolha um rodízio de 2 ou 3 semanas.'));
+    else if(maxSunGap>3)C.push(li('warn',`Domingo de folga a cada ${maxSunGap} semanas. No comércio, o limite é a cada 3.`))}
+  if(splitN&&e.juntas)C.push(li('info','Algumas folgas ficaram em dias separados para manter a cobertura.'));
+  if(e.noturno)C.push(li('info',`Hora noturna urbana reduzida aplicada entre 22h e 5h${rawF<=A?', com fechamento no dia seguinte':''}.`));
+  if(lunchGapCount)C.push(li('warn',`${lunchGapCount} período(s) de almoço ainda ficam sem ninguém no local. Isso ocorre quando há apenas uma pessoa disponível; aumente a equipe ou sobreponha os turnos.`));
+  const lunchChanges=e.rev?dayGroups.reduce((n,week,w)=>n+week.reduce((m,days,d)=>m+days.reduce((q,g,i)=>q+(!weeks[w][i].offs.includes(d)&&g!==workers[i].g?1:0),0),0),0):0;
+  const nCob=!FA&&!e.rev?e.turnos.reduce((a,t)=>a+Math.min(t.cob||0,t.n),0):0;
+  if(nCob){const h=shiftTimes(e.turnos[0],1);C.push(li('info',`${nCob} colaborador${nCob>1?'es contratados':' contratado'} para cobrir o almoço da equipe ${nCob>1?'usam':'usa'} o intervalo das ${hhmm(h.ls)} às ${hhmm(h.le)}. O intervalo dos demais não muda.`))}
+  if(difOn){const esp=[0,1,2,3,4,5,6].filter(d=>J[d].esp);if(esp.length){const compOn=e.dif.compensar!==false;C.push(li('info',`Horário diferente: ${esp.map(d=>`${DF[d].toLowerCase()} ${hhmm(J[d].a)}–${hhmm(J[d].f)}`).join(', ')}. Quem trabalha nesse dia entra e sai junto com o atendimento${compOn?', e as horas que faltam são diluídas nos outros dias de trabalho da semana, com entrada mais cedo ou saída mais tarde, de preferência dentro do horário de atendimento.':', sem compensação nos outros dias.'}`));
+    if(!compOn){let minSem=Infinity;for(let w=0;w<L;w++)workers.forEach((wk,i)=>{if(wk.turno.seis)return;let t=0,temEsp=false;for(let d=0;d<7;d++){const h=dayHours[w][d][i];if(!h||!open[d]||weeks[w][i].offs.includes(d))continue;t+=credito(h);if(J[d].esp)temEsp=true}if(temEsp)minSem=Math.min(minSem,t)});
+      if(minSem<S.reg*60-0.5)C.push(li('warn',`A semana de quem trabalha ${esp.map(d=>(d>=5?'no ':'na ')+DF[d].toLowerCase()).join(' ou ')} fica com ${dur(minSem)}, abaixo de ${S.reg}h00.`))}
+    {let min6=Infinity;for(let w=0;w<L;w++)workers.forEach((wk,i)=>{if(!wk.turno.seis)return;let t=0,temEsp=false;for(let d=0;d<7;d++){const h=dayHours[w][d][i];if(!h||!open[d]||weeks[w][i].offs.includes(d))continue;t+=credito(h);if(J[d].esp)temEsp=true}if(temEsp)min6=Math.min(min6,t)});
+      if(min6<1800-0.5)C.push(li('warn',`No turno de 6 horas não há compensação (o dia não pode passar de 6 horas): a semana de quem trabalha ${esp.map(d=>(d>=5?'no ':'na ')+DF[d].toLowerCase()).join(' ou ')} fica com ${dur(min6)}, abaixo de 30h00.`))}
+    let maxCred=0,depois=false;for(let w=0;w<L;w++)for(let d=0;d<7;d++)workers.forEach((wk,i)=>{const h=dayHours[w][d][i];if(!h)return;maxCred=Math.max(maxCred,credito(h));if(h.s>J[d].f)depois=true});
+    if(maxCred>600)C.push(li('bad',`Com a compensação, algum dia passa de 10 horas de trabalho (${dur(maxCred)}). Reduza a diferença de horário ou revise os turnos.`));
+    if(depois)C.push(li('warn','Com a compensação, algumas saídas ficam depois do fechamento. Confira se isso é possível ou ajuste a entrada dos turnos.'))}}
+  if(e.fem&&open[6]){const marc=workers.map((_,i)=>i).filter(i=>e.femMarks[i]);
+    if(!marc.length)C.push(li('info','Folga dominical quinzenal para mulheres: marque F (FEMININO) ao lado do nome das colaboradoras no quadro.'));
+    else{const falha=marc.filter(i=>{const sw=weeks.map(asg=>asg[i].offs.includes(6));if(!sw.some(Boolean))return true;let g=0,mg=0;[...sw,...sw].forEach(x=>{g=x?0:g+1;mg=Math.max(mg,g)});return mg+1>2});
+      C.push(li('warn',`Folga dominical quinzenal para ${marc.length} colaboradora${marc.length>1?'s':''} (CLT, art. 386): folga no domingo pelo menos a cada 2 semanas${L===3?' (2 domingos em cada 3)':''}. Os demais seguem o rodízio normal. Confira a convenção coletiva da categoria.`));
+      if(falha.length)C.push(li('bad',`${falha.map(i=>names[i]).join(', ')}: não foi possível dar a folga no domingo a cada 2 semanas. Aumente a equipe ou o número de pessoas por turno.`))}}
+  if(e.turnos.some(t=>t.seis&&t.n>0))C.push(li('warn','Turno de 6 horas (30 h semanais, intervalo de 15 minutos): confira a convenção coletiva da categoria.'));
+  if(lunchChanges)C.push(li('info','O horário de intervalo em laranja, abaixo da jornada, aparece somente nos dias em que foi alterado pelo revezamento.'));
+  if(!C.length)C.push(li('ok','Duas folgas para todos, no máximo 6 dias seguidos de trabalho'+(open[6]?' e domingo de folga dentro do rodízio.':'.')));
+  // Jornada acima de 8 h por dia (inclusive pela compensação): o cliente confirma antes de continuar.
+  let maxDia=0;for(let w=0;w<L;w++)for(let d=0;d<7;d++)workers.forEach((wk,i)=>{const h=dayHours[w][d][i];if(!h||!h.comp)return;const c=credito(h);if(c>maxDia)maxDia=c});
+  maxDia=Math.round(maxDia);const chave8=`${S.reg}-${maxDia}`,pend8=maxDia>480&&maxDia<=600&&e.ack8!==chave8;
+  if(maxDia>480&&maxDia<=600&&!pend8)C.push(li('warn',`Com a compensação, há dias com ${dur(maxDia)} de trabalho, acima de 8 horas: compensação a ser formalizada em acordo ou convenção coletiva (ciente).`));
+  $('e-aviso8').innerHTML=pend8?`<div class="status bad" style="flex-direction:column;align-items:flex-start;gap:6px"><span>Jornada acima de 8 horas por dia.</span><span style="font-weight:600;color:var(--ink)">Com a compensação do dia com horário diferente, há dias com <b>${dur(maxDia)}</b> de trabalho, acima de 8 horas. A compensação precisa ser formalizada em acordo ou convenção coletiva.</span><button type="button" class="btn" id="e-ok8" style="margin-top:4px;padding:5px 14px;font-size:.84rem">Ok, ciente</button></div>`:'';
+  if(pend8)$('e-ok8').onclick=()=>{S.e.ack8=chave8;renderAll();toast('Ciente registrado')};
+  ['e-pdf','e-salvar'].forEach(id=>{const b=$(id);if(!b)return;b.disabled=pend8;b.title=pend8?'Clique em “Ok, ciente” no aviso da jornada para continuar':''});
+  $('e-checks').innerHTML=C.join('');
+  // semanas
+  $('e-weeks').innerHTML=L>1?Array.from({length:L},(_,w)=>`<button type="button" id="e-w-${w}" data-w="${w}" aria-pressed="${w===S.semana}">Semana ${w+1}</button>`).join(''):'';
+  $('e-weeks').querySelectorAll('button').forEach(b=>b.onclick=()=>{S.semana=+b.dataset.w;renderE();save()});
+  // grade
+  const W=S.semana;
+  let t=`<thead><tr><th>Colaborador</th>${DN.map(d=>`<th>${d}</th>`).join('')}</tr></thead><tbody>`;
+  workers.forEach((wk,i)=>{const P=weeks[W][i];
+    const almocos=[...new Set([0,1,2,3,4,5,6].filter(d=>open[d]&&!P.offs.includes(d)&&(dayHours[W][d][i]||wk.h).ls!==(dayHours[W][d][i]||wk.h).le&&!(dayHours[W][d][i]||wk.h).curto).map(d=>{const h=dayHours[W][d][i]||wk.h;return hhmm(h.ls)+'–'+hhmm(h.le)}))],almocoTexto=wk.h.seis?'15 minutos':almocos.length===1?almocos[0]:hhmm(wk.h.ls)+'–'+hhmm(wk.h.le);
+    t+=`<tr><td><b class="editable-name" contenteditable="plaintext-only" spellcheck="false" data-edit-name="${i}" data-original-name="${esc(names[i])}" title="Clique para editar o nome" aria-label="Editar nome do colaborador ${i+1}">${esc(names[i])}</b>${e.fem?`<button type="button" class="fem-btn${e.femMarks[i]?' on':''}" data-fem="${i}" title="Feminino" aria-pressed="${!!e.femMarks[i]}" aria-label="Marcar ${esc(names[i])} como feminino">F</button>`:''}<small class="worker-shift">${clockDay(wk.h.E)}–${clockDay(wk.h.s)}</small><small class="worker-lunch">Intervalo: ${almocoTexto}</small></td>`;
+    for(let d=0;d<7;d++){const h=dayHours[W][d][i]||wk.h,semInt=h.ls===h.le,esp=!!h.esp,adjusted=!semInt&&!h.seis&&!FA&&e.rev&&dayGroups[W][d][i]!==wk.g;
+      const tit=semInt?'Dia com horário de atendimento diferente: sem intervalo':(esp?'Dia com horário de atendimento diferente · ':'')+(h.comp?`Compensação de ${dur(h.comp)} · `:'')+(adjusted?'Almoço alterado pelo revezamento':'Almoço')+`: ${hhmm(h.ls)}–${hhmm(h.le)}`;
+      t+=!open[d]?`<td><span class="cell c">fechado</span></td>`:P.offs.includes(d)?`<td><span class="cell o">Folga</span></td>`:`<td title="${tit}"><span class="cell w${esp?' esp':''}${h.comp?' comp':''}">${clockDay(h.E)}<span>${clockDay(h.s)}</span>${semInt?'<span class="day-note">sem intervalo</span>':h.curto&&!h.seis?'<span class="day-note">Intervalo de 15 minutos</span>':adjusted?`<span class="lunch-change" aria-label="Intervalo alterado: ${hhmm(h.ls)} às ${hhmm(h.le)}">${hhmm(h.ls)}–${hhmm(h.le)}</span>`:''}</span></td>`}
+    t+='</tr>'});
+  $('e-tab').innerHTML=t+'</tbody>';
+  $('e-tab').querySelectorAll('[data-fem]').forEach(bt=>bt.onclick=()=>{const i=+bt.dataset.fem;if(e.femMarks[i])delete e.femMarks[i];else e.femMarks[i]=true;renderAll()});
+  $('e-tab').querySelectorAll('[data-edit-name]').forEach(el=>{el.onkeydown=ev=>{if(ev.key==='Enter'){ev.preventDefault();el.blur()}else if(ev.key==='Escape'){ev.preventDefault();el.textContent=el.dataset.originalName;el.blur()}};el.onblur=()=>atualizarNomeDireto(+el.dataset.editName,el.textContent,N)});
+  // mapa de cobertura
+  const cols=`grid-template-columns:repeat(${displaySlots.length},minmax(0,1fr))`;
+  let hm='';for(let d=0;d<7;d++){hm+=`<div class="d">${DN[d]}</div><div class="strip" style="${cols}">`;
+    hm+=displaySlots.map(([a,b])=>{if(!open[d])return`<span class="cl"></span>`;if(fechadoDia(d,(a+b)/2))return`<span class="cl" title="${DN[d]} ${hhmm(a)}–${hhmm(b)}: fora do horário de atendimento"></span>`;if(noAlmoco((a+b)/2))return`<span class="cl" title="${DN[d]} ${hhmm(a)}–${hhmm(b)}: fechado para almoço">–</span>`;const p=presence(W,d,(a+b)/2);return`<button type="button" class="${p<M?'bad':'ok'}" data-heat-day="${d}" data-heat-a="${a}" data-heat-b="${b}" title="Ver nomes — ${DN[d]} ${hhmm(a)}–${hhmm(b)}: ${p} pessoa(s)">${p}</button>`}).join('')+'</div>'}
+  const lab=[];for(let m=Math.ceil(SA/120)*120;m<=SF;m+=120)lab.push(m);
+  const px=m=>((m-SA)/(SF-SA)*100).toFixed(2);
+  hm+=`<div></div><div class="haxis">${[SA,...lab.filter(m=>m>SA+40&&m<SF-40),SF].map((m,i,arr)=>`<span style="left:${px(m)}%;transform:translateX(${i===0?'0':i===arr.length-1?'-100%':'-50%'})">${hhmm(m)}</span>`).join('')}</div>`;
+  hm+=`<div class="legend"><span><i style="background:var(--green-soft)"></i>mínimo atendido</span><span><i style="background:var(--bad)"></i>abaixo de ${M}</span>${FA?'<span><i style="background:var(--off)"></i>fechado (almoço)</span>':''}<span>cada quadro = 30 min</span></div>`;
+  $('e-heat').innerHTML=hm;
+  $('e-heat').querySelectorAll('[data-heat-day]').forEach(btn=>btn.onclick=()=>{const d=+btn.dataset.heatDay,a=+btn.dataset.heatA,b=+btn.dataset.heatB,mid=(a+b)/2;
+    const present=[],lunch=[];workers.forEach((wk,i)=>{if(weeks[W][i].offs.includes(d))return;const h=dayHours[W][d][i]||wk.h;if((mid>=h.E&&mid<h.ls)||(mid>=h.le&&mid<h.s))present.push(names[i]);else if(mid>=h.ls&&mid<h.le)lunch.push(names[i])});
+    $('presence-time').textContent=`${DF[d]}, das ${hhmm(a)} às ${hhmm(b)} · Semana ${W+1}`;
+    $('presence-body').innerHTML=`<h4>No local (${present.length})</h4>${present.length?`<ul class="presence-list">${present.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:'<p class="hint">Nenhum colaborador no local.</p>'}${lunch.length?`<div class="presence-lunch"><b>Em almoço (${lunch.length}):</b> ${lunch.map(esc).join(', ')}</div>`:''}`;
+    const modal=$('presence-modal');modal.showModal?modal.showModal():modal.setAttribute('open','')});
+  lastE={workers,weeks,names,open,L,dayHours,dayGroups};
+  clearTimeout(renderE.sim);if(anyBad)renderE.sim=setTimeout(mostrarContratacao,60);
+}
+$('presence-close').onclick=()=>{const modal=$('presence-modal');modal.close?modal.close():modal.removeAttribute('open')};
+$('presence-modal').onclick=e=>{if(e.target===$('presence-modal'))$('presence-close').click()};
+function lunchLabel(w,i){const{dayHours,weeks,open,workers}=lastE;if(workers[i].h.seis)return'15 minutos';const vals=[...new Set([0,1,2,3,4,5,6].filter(d=>open[d]&&!weeks[w][i].offs.includes(d)&&dayHours[w][d][i].ls!==dayHours[w][d][i].le&&!dayHours[w][d][i].curto).map(d=>{const h=dayHours[w][d][i];return hhmm(h.ls)+'-'+hhmm(h.le)}))];return vals.length===1?vals[0]:'Revezado'}
+function tabela(sep){if(!lastE)return'';const{workers,weeks,names,open,L}=lastE;const lines=[];
+  weeks.forEach((asg,w)=>{if(L>1)lines.push('Semana '+(w+1));lines.push(['Colaborador','Entrada','Almoço','Saída',...DF].join(sep));
+    workers.forEach((wk,i)=>lines.push([names[i].replace(/[;\t\n]/g,' '),clockDay(wk.h.E),lunchLabel(w,i),clockDay(wk.h.s),...[0,1,2,3,4,5,6].map(d=>!open[d]?'FECHADO':asg[i].offs.includes(d)?'FOLGA':'TRABALHA')].join(sep)));
+    lines.push('')});
+  return lines.join('\r\n')}
+async function salvarArquivo(filename,data,okMsg){
+  let dl=null;try{dl=await window.claude?.use?.('downloads')}catch(e){}
+  if(dl){try{await dl.save({filename,data});toast(okMsg);return}catch(err){const c=err&&err.code;if(c==='declined'){toast('Download cancelado');return}if(c==='rate_limited'){toast('Aguarde um instante e tente de novo');return}}}
+  try{const blob=data instanceof Blob?data:new Blob([data]);const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);toast(okMsg)}catch(e){toast('Download indisponível aqui')}}
+if($('e-copy'))$('e-copy').onclick=async()=>{const t=tabela('\t');if(!t)return toast('Monte a escala primeiro');await copy(t);if($('toast').textContent==='Copiado')toast('Copiado. Abra o Excel e cole (Ctrl + V)')};
+
+/* ---------- PDF do custo do trabalhador (lê a calculadora) ---------- */
+async function gerarPdfCusto(){
+  const d=$('custo-frame').contentDocument;const q=sel=>d.querySelector(sel),tx=sel=>((q(sel)||{}).textContent||'').trim();
+  const{PDFDocument,StandardFonts,rgb}=window.PDFLib,C=h=>rgb(parseInt(h.slice(0,2),16)/255,parseInt(h.slice(2,4),16)/255,parseInt(h.slice(4,6),16)/255);
+  const NAVY=C('142C42'),INK=C('263E50'),MUTED=C('617888'),GREEN=C('006B32'),TINT=C('EBF6EF'),LINE=C('DCE6E1'),WHITE=C('FFFFFF'),OR=C('C94F2D'),ORS=C('FFEDE5'),ORI=C('94331E');
+  const txt=s=>String(s).replace(/[–—]/g,'-').replace(/ /g,' ').replace(/[^\x20-\x7E\xA0-\xFF]/g,'');
+  const pdf=await PDFDocument.create();pdf.setTitle('Custo do Trabalhador - CT Price');pdf.setAuthor('CT Price Organização Contábil');
+  const F=await pdf.embedFont(StandardFonts.Helvetica),FB=await pdf.embedFont(StandardFonts.HelveticaBold);
+  const W=595.28,H=841.89,M=40;let pg=pdf.addPage([W,H]);
+  const logo=await pdf.embedPng(new Uint8Array(await(await fetch(document.querySelector('header .logo').src)).arrayBuffer()));const lh=36,lw=lh*logo.width/logo.height;
+  const right=(p,s,x,y,f,sz,c)=>{s=txt(s);p.drawText(s,{x:x-f.widthOfTextAtSize(s,sz),y,size:sz,font:f,color:c})};
+  const head=p=>{p.drawImage(logo,{x:M,y:H-M-lh,width:lw,height:lh});p.drawText('Custo do Trabalhador',{x:M+lw+16,y:H-M-16,size:17,font:FB,color:NAVY});
+    p.drawText(txt(`Unidade: ${(S.ident.unidade||'').trim()||'Não informada'} · Equipe: ${(S.ident.equipe||'').trim()||'Não informada'}`),{x:M+lw+16,y:H-M-31,size:9,font:FB,color:GREEN});
+    right(p,'Gerado em '+new Date().toLocaleDateString('pt-BR'),W-M,H-M-16,F,9,MUTED)};
+  head(pg);let y=H-M-62;
+  // faixa de identificação
+  const cargo=(d.getElementById('nome').value||'').trim()||'Não informado',qtd=d.getElementById('quantidade').value||'1',per=(d.querySelector('input[name="periodo"]:checked')||{}).value==='anual'?'Anual':'Mensal',reg=d.getElementById('simples').checked?(d.getElementById('construtora').checked?'Simples Nacional · Construção Civil':'Simples Nacional'):'Fora do Simples Nacional';
+  pg.drawRectangle({x:M,y:y-50,width:W-2*M,height:50,color:TINT,borderColor:C('CFE6D8'),borderWidth:.8});
+  [['Cargo/Função',cargo],['Colaboradores',qtd],['Período',per],['Regime',reg]].forEach(([k,v],i)=>{const x=M+12+i*((W-2*M-24)/4);pg.drawText(txt(k),{x,y:y-18,size:8,font:F,color:MUTED});pg.drawText(txt(v).slice(0,34),{x,y:y-34,size:10,font:FB,color:NAVY})});
+  y-=64;
+  // destaque do total
+  pg.drawRectangle({x:M,y:y-46,width:W-2*M,height:46,color:GREEN});pg.drawText(txt(tx('#heroLabel')),{x:M+14,y:y-18,size:9,font:F,color:WHITE});pg.drawText(txt(tx('#totalMensal')),{x:M+14,y:y-38,size:17,font:FB,color:WHITE});
+  right(pg,`${tx('#quantidadeResumo')} · ${tx('#custoIndividualHero')} ${tx('#heroPeriod')}`,W-M-14,y-30,F,9.5,WHITE);y-=62;
+  pg.drawText(txt(tx('#detalhamentoTitulo')),{x:M,y,size:11.5,font:FB,color:NAVY});right(pg,'% sobre o salário',W-M,y,F,8,MUTED);y-=10;
+  const VX=W-M-72,PX=W-M;
+  for(const el of d.querySelector('.table').children){
+    if(y<M+120){pg=pdf.addPage([W,H]);head(pg);y=H-M-62}
+    if(el.classList.contains('section-label')){y-=14;pg.drawText(txt(el.textContent.trim().toLocaleUpperCase('pt-BR')),{x:M,y,size:8,font:FB,color:GREEN});y-=4;continue}
+    if(el.classList.contains('line')){const nm=el.querySelector('.name'),small=nm.querySelector('small');const name=[...nm.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join('').trim()||nm.textContent.trim();
+      const val=(el.querySelector('.value')||{}).textContent||'',pct=(el.querySelector('.pct')||{}).textContent||'';const tot=el.classList.contains('total');const rh=small&&small.textContent.trim()?26:18;
+      if(tot){y-=4;pg.drawLine({start:{x:M,y},end:{x:W-M,y},thickness:1.4,color:NAVY})}
+      y-=rh;pg.drawText(txt(name),{x:M,y:y+(small&&small.textContent.trim()?10:5),size:tot?10.5:9.5,font:tot?FB:FB,color:tot?NAVY:INK});
+      if(small&&small.textContent.trim())pg.drawText(txt(small.textContent.trim()).slice(0,95),{x:M,y:y+1,size:7.5,font:F,color:MUTED});
+      right(pg,val,VX,y+5,tot?FB:F,tot?10.5:9.5,NAVY);right(pg,pct,PX,y+5,F,8.5,MUTED);
+      if(!tot)pg.drawLine({start:{x:M,y:y-2},end:{x:W-M,y:y-2},thickness:.5,color:LINE});y-=2;continue}
+  }
+  // resumo laranja
+  const rows=[...d.querySelectorAll('#pctResumo .r')];const bh=26+rows.length*20;if(y-bh<M+60){pg=pdf.addPage([W,H]);head(pg);y=H-M-62}
+  y-=14;pg.drawRectangle({x:M,y:y-bh,width:W-2*M,height:bh,color:ORS,borderColor:OR,borderWidth:1.2});
+  pg.drawText(txt(tx('#pctResumo h4')).toUpperCase(),{x:M+12,y:y-17,size:8.5,font:FB,color:ORI});let ry=y-26;
+  rows.forEach((r,i)=>{ry-=20;const b=r.querySelector('b').textContent,v=r.querySelector('span').textContent,e=r.querySelector('em').textContent,t=r.classList.contains('tot');
+    if(t)pg.drawLine({start:{x:M+12,y:ry+15},end:{x:W-M-12,y:ry+15},thickness:1,color:OR});
+    pg.drawText(txt(b),{x:M+12,y:ry+2,size:t?10.5:10,font:FB,color:C('5A2414')});right(pg,v,VX,ry+2,t?FB:F,10,C('5A2414'));right(pg,e,W-M-12,ry+2,FB,10,ORI)});
+  y-=bh+16;
+  const note='Simulação aproximada. Consulte a CT Price para validar o enquadramento tributário e situações específicas. LGPD: informe somente o cargo ou a função.';
+  pg.drawText(txt(note),{x:M,y,size:7.5,font:F,color:MUTED,maxWidth:W-2*M,lineHeight:10});
+  pdf.getPages().forEach((p,i,a)=>{p.drawLine({start:{x:M,y:M+14},end:{x:W-M,y:M+14},thickness:.5,color:LINE});p.drawText(txt('CT Price Organização Contábil · www.ctprice.com.br · (67) 3313-7300'),{x:M,y:M,size:8,font:F,color:MUTED});right(p,`Página ${i+1} de ${a.length}`,W-M,M,F,8,MUTED)});
+  return await pdf.save()}
+window.ctpPdfCusto=async btn=>{const old=btn?btn.textContent:'';if(btn){btn.disabled=true;btn.textContent='Gerando PDF…'}
+  try{await loadPdfLib();const bytes=await gerarPdfCusto();const d=$('custo-frame').contentDocument;const cargo=((d.getElementById('nome').value||'')+'').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');await salvarArquivo(`custo-trabalhador${cargo?'-'+cargo:''}.pdf`,new Blob([bytes],{type:'application/pdf'}),'PDF salvo')}
+  catch(err){console.error(err);toast('Não foi possível gerar o PDF')}finally{if(btn){btn.disabled=false;btn.textContent=old}}};
+
+/* ---------- PDF da escala ---------- */
+function loadPdfLib(){return window.PDFLib?Promise.resolve():Promise.reject(new Error('lib'))}
+async function gerarPdf(){
+  const{PDFDocument,StandardFonts,rgb}=window.PDFLib;const{workers,weeks,names,open,L}=lastE;const e=S.e;
+  const C=h=>rgb(parseInt(h.slice(0,2),16)/255,parseInt(h.slice(2,4),16)/255,parseInt(h.slice(4,6),16)/255);
+  const NAVY=C('142C42'),INK=C('263E50'),MUTED=C('617888'),GREEN=C('006B32'),GSOFT=C('DDEFE4'),GINK=C('00572A'),OSOFT=C('FBEFD9'),OINK=C('9A5B00'),OFF=C('EBEFF1'),LINE=C('C9D3D6'),ZEBRA=C('F6F9F8'),WHITE=C('FFFFFF'),TINT=C('EBF6EF');
+  const txt=s=>String(s).replace(/[–—]/g,'-').replace(/[^\x20-\x7E\xA0-\xFF]/g,'');
+  const pdf=await PDFDocument.create();pdf.setTitle('Gerador de Escala - CT Price');pdf.setAuthor('CT Price Organização Contábil');
+  const F=await pdf.embedFont(StandardFonts.Helvetica),FB=await pdf.embedFont(StandardFonts.HelveticaBold);
+  const logoSrc=document.querySelector('header .logo').src;const logoBytes=new Uint8Array(await (await fetch(logoSrc)).arrayBuffer());
+  const logo=await pdf.embedPng(logoBytes);
+  const W=841.89,H=595.28,M=30;const fit=(s,f,sz,max)=>{s=txt(s);if(f.widthOfTextAtSize(s,sz)<=max)return s;while(s.length>1&&f.widthOfTextAtSize(s+'...',sz)>max)s=s.slice(0,-1);return s+'...'};
+  const perDay=S.reg*60/5;
+  const diasAbertos=[0,1,2,3,4,5,6].filter(d=>open[d]).map(d=>DN[d]).join(', ');
+  const hoje=new Date().toLocaleDateString('pt-BR');
+  // colunas
+  const cols=[{t:'Colaborador',w:145,a:'l'},{t:'Entrada',w:48},{t:'Saída',w:48}];
+  const rest=(W-2*M-cols.reduce((s,c)=>s+c.w,0))/7;DN.forEach(d=>cols.push({t:d,w:rest}));
+  // Linha compacta com duas informações em cada dia: situação e almoço.
+  const RH=30,HH=20;
+  const pages=[];
+  const header=(pg,w,cont)=>{
+    const lh=34,lw=lh*logo.width/logo.height;pg.drawImage(logo,{x:M,y:H-M-lh,width:lw,height:lh});
+    const x0=M+lw+18;pg.drawText('Gerador de Escala',{x:x0,y:H-M-15,size:17,font:FB,color:NAVY});
+    const identidade=`Unidade de Negócio: ${(S.ident.unidade||'Não informada').trim()||'Não informada'} · Equipe: ${(S.ident.equipe||'Não informada').trim()||'Não informada'}`;
+    pg.drawText(fit(identidade,F,9,W-M-x0-190),{x:x0,y:H-M-31,size:9,font:FB,color:GREEN});
+    pg.drawText(fit(`Funcionamento: ${diasAbertos} · ${e.abre} às ${e.fecha}${e.noturno&&toMin(e.fecha)<=toMin(e.abre)?' (dia seguinte)':''}${e.fa?` (fecha ${e.faIni}-${e.faFim})`:''} · ${workers.length} colaboradores · mínimo de ${e.min} no local`,F,8.5,W-M-x0),{x:x0,y:H-M-45,size:8.5,font:F,color:MUTED});
+    const sem=L>1?`Semana ${w+1} de ${L}`+(cont?' (continuação)':''):(cont?'Escala semanal (continuação)':'Escala semanal');
+    const sw=FB.widthOfTextAtSize(txt(sem),12);pg.drawText(txt(sem),{x:W-M-sw,y:H-M-15,size:12,font:FB,color:GREEN});
+    const g='Gerado em '+hoje;pg.drawText(g,{x:W-M-F.widthOfTextAtSize(g,9),y:H-M-45,size:9,font:F,color:MUTED});
+    // faixa da jornada
+    const by=H-M-80,bh=22;pg.drawRectangle({x:M,y:by,width:W-2*M,height:bh,color:TINT,borderColor:C('CFE6D8'),borderWidth:.8});
+    const items=[['Jornada semanal',dur(S.reg*60)],['Por dia',dur(perDay)],['Intervalo',intervaloResumo()],['Folgas por semana','2'],['Turnos',String(e.turnos.length)]];
+    let xx=M+12;items.forEach(([k,v])=>{pg.drawText(txt(k+':'),{x:xx,y:by+7,size:9,font:F,color:MUTED});const kw=F.widthOfTextAtSize(txt(k+':'),9)+4;pg.drawText(v,{x:xx+kw,y:by+7,size:10,font:FB,color:NAVY});xx+=kw+FB.widthOfTextAtSize(v,10)+28});
+    return by-12;
+  };
+  const cell=(pg,x,y,w,h,s,o)=>{o=o||{};if(o.fill)pg.drawRectangle({x,y,width:w,height:h,color:o.fill});pg.drawRectangle({x,y,width:w,height:h,borderColor:LINE,borderWidth:.5});
+    const f=o.bold?FB:F,sz=o.size||8.5;const t=fit(s,f,sz,w-8);const tw=f.widthOfTextAtSize(t,sz);
+    pg.drawText(t,{x:o.a==='l'?x+5:x+(w-tw)/2,y:y+(h-sz*0.7)/2,size:sz,font:f,color:o.color||INK})};
+  const dayCell=(pg,x,y,w,h,top,bottom,o)=>{o=o||{};pg.drawRectangle({x,y,width:w,height:h,color:o.fill||WHITE,borderColor:LINE,borderWidth:.5});
+    const a=fit(top,FB,7.3,w-6),aw=FB.widthOfTextAtSize(a,7.3);pg.drawText(a,{x:x+(w-aw)/2,y:y+17,size:7.3,font:FB,color:o.color||GINK});
+    if(bottom){const b=fit(bottom,F,6.6,w-5),bw=F.widthOfTextAtSize(b,6.6);pg.drawText(b,{x:x+(w-bw)/2,y:y+6,size:6.6,font:F,color:INK})}};
+  const tableHead=(pg,y)=>{let x=M;cols.forEach(c=>{cell(pg,x,y-HH,c.w,HH,c.t,{fill:NAVY,color:WHITE,bold:true,a:c.a,size:9});x+=c.w});return y-HH};
+  weeks.forEach((asg,w)=>{
+    let pg=pdf.addPage([W,H]);pages.push(pg);let y=tableHead(pg,header(pg,w,false));
+    workers.forEach((wk,i)=>{
+      if(y-RH<M+40){pg=pdf.addPage([W,H]);pages.push(pg);y=tableHead(pg,header(pg,w,true))}
+      const P=asg[i];const z=i%2?ZEBRA:WHITE;let x=M;
+      const vals=[[names[i]+(e.fem&&e.femMarks&&e.femMarks[i]?' (F)':''),{a:'l',bold:true,color:NAVY,fill:z}],[clockDay(wk.h.E),{fill:z}],[clockDay(wk.h.s),{fill:z}]];
+      vals.forEach(([s,o],k)=>{cell(pg,x,y-RH,cols[k].w,RH,s,o);x+=cols[k].w});
+      for(let d=0;d<7;d++){const cw=cols[3+d].w;if(!open[d])dayCell(pg,x,y-RH,cw,RH,'FECHADO','',{fill:OFF,color:C('A3261B')});else if(P.offs.includes(d))dayCell(pg,x,y-RH,cw,RH,'FOLGA','',{fill:OFF,color:C('A3261B')});else{const h=lastE.dayHours[w][d][i]||wk.h,adjusted=e.rev&&lastE.dayGroups[w][d][i]!==wk.g;dayCell(pg,x,y-RH,cw,RH,`${hhmm(h.E)}-${hhmm(h.s)}`,h.ls===h.le?'Sem intervalo':h.curto?'Intervalo de 15 minutos':`Intervalo ${hhmm(h.ls)}-${hhmm(h.le)}`,{fill:adjusted?OSOFT:GSOFT,color:adjusted?OINK:GINK})}x+=cw}y-=RH;
+    });
+    // linha "No local"
+    if(y-RH<M+40){pg=pdf.addPage([W,H]);pages.push(pg);y=tableHead(pg,header(pg,w,true))}
+    let x=M;const lw=cols[0].w+cols[1].w+cols[2].w;cell(pg,x,y-RH,lw,RH,'Pessoas no dia',{fill:TINT,bold:true,color:NAVY,a:'l'});x+=lw;
+    for(let d=0;d<7;d++){const n=open[d]?workers.filter((_,i)=>!asg[i].offs.includes(d)).length:'-';cell(pg,x,y-RH,cols[3+d].w,RH,String(n),{fill:TINT,bold:true,color:NAVY});x+=cols[3+d].w}
+    y-=RH;pg.drawText(txt('Trabalha = dia de trabalho · Laranja = almoço ajustado pelo revezamento · FOLGA = descanso semanal. Confira a convenção coletiva.'),{x:M,y:y-14,size:8,font:F,color:MUTED});
+  });
+  pages.forEach((pg,i)=>{pg.drawLine({start:{x:M,y:M+14},end:{x:W-M,y:M+14},thickness:.5,color:LINE});
+    pg.drawText(txt('CT Price Organização Contábil · Gerador de Escala · EC nº 141/2026'),{x:M,y:M,size:8,font:F,color:MUTED});
+    const p=`Página ${i+1} de ${pages.length}`;pg.drawText(txt(p),{x:W-M-F.widthOfTextAtSize(txt(p),8),y:M,size:8,font:F,color:MUTED})});
+  return await pdf.save();
+}
+if($('e-pdf'))$('e-pdf').onclick=async()=>{if(!lastE)return toast('Monte a escala primeiro');const b=$('e-pdf');const old=b.innerHTML;b.disabled=true;b.textContent='Gerando PDF…';
+  try{await loadPdfLib();const bytes=await gerarPdf();const id=[S.ident.unidade,S.ident.equipe].map(v=>(v||'').trim()).filter(Boolean).join('-').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');await salvarArquivo(`escala-${id||'ct-price'}.pdf`,new Blob([bytes],{type:'application/pdf'}),'PDF salvo')}
+  catch(err){console.error(err);toast('Não foi possível gerar o PDF')}finally{b.disabled=false;b.innerHTML=old}};
+$('e-abre').onchange=e=>{if(e.target.value){S.e.abre=e.target.value;renderAll()}};
+$('e-fecha').onchange=e=>{if(e.target.value){S.e.fecha=e.target.value;renderAll()}};
+$('e-noturno').onchange=e=>{S.e.noturno=e.target.checked;renderAll()};
+$('e-min').onchange=e=>{S.e.min=Math.max(0,+e.target.value||0);renderAll()};
+$('e-sem').onchange=e=>{S.e.sem=+e.target.value;S.e.semAuto=false;S.semana=0;renderAll()};
+$('e-juntas').onchange=e=>{S.e.juntas=e.target.checked;renderAll()};
+$('e-rev').onchange=e=>{S.e.rev=e.target.checked;renderAll()};
+$('e-fem').onchange=ev=>{S.e.fem=ev.target.checked;renderAll()};
+$('e-dif-comp').onchange=ev=>{if(!S.e.dif)S.e.dif={ativo:false,dias:{}};S.e.dif.compensar=ev.target.checked;renderAll()};
+$('e-dif').onchange=ev=>{if(!S.e.dif)S.e.dif={ativo:false,dias:{}};S.e.dif.ativo=ev.target.checked;renderAll()};
+$('e-alm-por-dur').onchange=e=>{S.e.almModo=e.target.checked?'dur':'hora';atualizarVoltaIntervalo();renderAll()};
+$('e-alm-ini').onchange=e=>{S.e.almIni=e.target.value;atualizarVoltaIntervalo();renderAll()};
+$('e-alm-fim').onchange=e=>{S.e.almFim=e.target.value;renderAll()};
+$('e-alm-dur').onchange=e=>{const m=parseDurCampo(e.target.value);if(!(m>0)){toast('Digite a duração no formato 1:30 ou 2:00');return renderAll()}S.e.almDur=m;atualizarVoltaIntervalo();renderAll()};
+$('e-alm-dur').oninput=e=>{const m=parseDurCampo(e.target.value);if(m>0){S.e.almDur=m;atualizarVoltaIntervalo();renderAll()}};
+// Reprocessa sozinho ao digitar o total ou o mínimo, sem criar ou remover turnos.
+['e-tot','e-min'].forEach(id=>$(id).addEventListener('input',()=>{clearTimeout(renderE.d);renderE.d=setTimeout(()=>{
+  const v=$(id).value;if(v===''||isNaN(+v))return;
+  if(id==='e-tot'){S.e.tot=Math.max(1,Math.min(200,+v||1));distribuir()}else S.e.min=Math.max(0,+v||0);
+  renderAll()},600)}));
+$('e-repro').onclick=()=>{const e=S.e;
+  if($('e-abre').value)e.abre=$('e-abre').value;if($('e-fecha').value)e.fecha=$('e-fecha').value;const t=+$('e-tot').value;if(t)e.tot=Math.max(1,Math.min(200,t));const m=$('e-min').value;if(m!=='')e.min=Math.max(0,+m||0);
+  if($('e-alm-ini').value)e.almIni=$('e-alm-ini').value;if(e.almModo==='hora'){if($('e-alm-fim').value)e.almFim=$('e-alm-fim').value}else{const d=parseDurCampo($('e-alm-dur').value);if(d>0)e.almDur=d;atualizarVoltaIntervalo()}
+  const A=toMin(e.abre),F0=toMin(e.fecha),F=e.noturno&&F0<=A?F0+1440:F0,FA=almocoFixo(),alm=duracaoIntervaloTurno();
+  if(!(F>A)||(!FA&&!(alm>0))){renderAll();return toast('Revise o funcionamento e o intervalo antes de processar')}
+  const msg=sugerirTurnos();e.v=(e.v||0)+1;S.semana=0;renderAll();toast(msg+'. Escala processada automaticamente')};
+$('e-fa').onchange=e=>{S.e.fa=e.target.checked;renderAll()};
+$('e-fa-ini').onchange=e=>{if(e.target.value){S.e.faIni=e.target.value;renderAll()}};
+$('e-fa-fim').onchange=e=>{if(e.target.value){S.e.faFim=e.target.value;renderAll()}};
+$('e-add').onclick=()=>{const e=S.e;if(e.turnos.length>=e.tot)return toast('Cada turno precisa de ao menos 1 pessoa');const last=e.turnos[e.turnos.length-1];e.turnos.push({...last,cob:0,entrada:hhmm(toMin(last.entrada)+120),n:0});distribuir();renderAll()};
+$('e-sug').onclick=()=>{const m=sugerirTurnos();renderAll();toast(m+' conforme o horário de funcionamento')};
+$('e-tot').onchange=ev=>{S.e.tot=Math.max(1,Math.min(200,+ev.target.value||1));distribuir();renderAll()};
+$('e-nomes').oninput=e=>{S.e.nomes=e.target.value;clearTimeout(renderE.t);renderE.t=setTimeout(()=>{renderE();save()},300)};
+
+/* ---------- Excel (.xlsx) sem biblioteca ---------- */
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(u){let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=CRC[(c^u[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0}
+function zipStore(files){const enc=new TextEncoder(),parts=[],central=[];let off=0;const d=new Date(),dt=((d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1))&0xFFFF,dd=(((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate())&0xFFFF;
+  files.forEach(f=>{const name=enc.encode(f.name),data=typeof f.data==='string'?enc.encode(f.data):f.data,crc=crc32(data);
+    const h=new DataView(new ArrayBuffer(30));h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(8,0,true);h.setUint16(10,dt,true);h.setUint16(12,dd,true);h.setUint32(14,crc,true);h.setUint32(18,data.length,true);h.setUint32(22,data.length,true);h.setUint16(26,name.length,true);h.setUint16(28,0,true);
+    parts.push(new Uint8Array(h.buffer),name,data);
+    const c=new DataView(new ArrayBuffer(46));c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);c.setUint16(10,0,true);c.setUint16(12,dt,true);c.setUint16(14,dd,true);c.setUint32(16,crc,true);c.setUint32(20,data.length,true);c.setUint32(24,data.length,true);c.setUint16(28,name.length,true);c.setUint32(42,off,true);
+    central.push(new Uint8Array(c.buffer),name);off+=30+name.length+data.length});
+  const cdSize=central.reduce((s,p)=>s+p.length,0);const e=new DataView(new ArrayBuffer(22));e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cdSize,true);e.setUint32(16,off,true);
+  return new Blob([...parts,...central,new Uint8Array(e.buffer)],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})}
+const xesc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'');
+const colL=n=>{let s='';n++;while(n){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26)}return s};
+// estilos: 0 normal, 1 cabeçalho, 2 título, 3 folga, 4 trabalha, 5 intervalo alterado, 6 nota, 7 nome, 8 centro, 9 total
+const XSTYLES=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="8"><font><sz val="11"/><color rgb="FF263E50"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font><font><b/><sz val="15"/><color rgb="FF142C42"/><name val="Calibri"/></font><font><b/><sz val="10"/><color rgb="FFA3261B"/><name val="Calibri"/></font><font><b/><sz val="10"/><color rgb="FF00572A"/><name val="Calibri"/></font><font><b/><sz val="10"/><color rgb="FF9A5B00"/><name val="Calibri"/></font><font><sz val="10"/><color rgb="FF617888"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FF142C42"/><name val="Calibri"/></font></fonts><fills count="7"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF142C42"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFEBEFF1"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFDDEFE4"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFFBEFD9"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFEBF6EF"/></patternFill></fill></fills><borders count="2"><border/><border><left style="thin"><color rgb="FFC9D3D6"/></left><right style="thin"><color rgb="FFC9D3D6"/></right><top style="thin"><color rgb="FFC9D3D6"/></top><bottom style="thin"><color rgb="FFC9D3D6"/></bottom></border></borders><cellStyleXfs count="1"><xf/></cellStyleXfs><cellXfs count="10"><xf/><xf fontId="1" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf><xf fontId="2" applyFont="1"/><xf fontId="3" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf><xf fontId="4" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf><xf fontId="5" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf><xf fontId="6" applyFont="1"/><xf fontId="7" borderId="1" applyFont="1" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf><xf borderId="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf><xf fontId="7" fillId="6" borderId="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+function sheetXml(rows,widths){// rows: [{h:altura,c:[[texto,estilo],...]}]
+  const cols=widths?`<cols>${widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')}</cols>`:'';
+  const body=rows.map((r,ri)=>`<row r="${ri+1}"${r.h?` ht="${r.h}" customHeight="1"`:''}>${(r.c||[]).map((c,ci)=>c==null?'':`<c r="${colL(ci)}${ri+1}" t="inlineStr" s="${c[1]||0}"><is><t xml:space="preserve">${xesc(c[0])}</t></is></c>`).join('')}</row>`).join('');
+  return`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><sheetViews><sheetView workbookViewId="0" showGridLines="0"/></sheetViews>${cols}<sheetData>${body}</sheetData><pageMargins left="0.4" right="0.4" top="0.5" bottom="0.5" header="0.3" footer="0.3"/><pageSetup paperSize="9" orientation="landscape" fitToWidth="1" fitToHeight="0"/></worksheet>`}
+function montarXlsx(sheets){// sheets: [{nome,rows,widths}]
+  const files=[{name:'[Content_Types].xml',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${sheets.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')}</Types>`},
+    {name:'_rels/.rels',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`},
+    {name:'xl/workbook.xml',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${sheets.map((s,i)=>`<sheet name="${xesc(s.nome.replace(/[\\\/?*\[\]:]/g,' ').slice(0,31))}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')}</sheets></workbook>`},
+    {name:'xl/_rels/workbook.xml.rels',data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${sheets.map((_,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')}<Relationship Id="rId${sheets.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`},
+    {name:'xl/styles.xml',data:XSTYLES},
+    ...sheets.map((s,i)=>({name:`xl/worksheets/sheet${i+1}.xml`,data:sheetXml(s.rows,s.widths)}))];
+  return zipStore(files)}
+function gerarXlsx(){
+  if(!lastE)throw new Error('escala');const{workers,weeks,names,open,L,dayHours,dayGroups}=lastE;const e=S.e;
+  const unidade=(S.ident.unidade||'').trim()||'Não informada',equipe=(S.ident.equipe||'').trim()||'Não informada';
+  const diasAbertos=[0,1,2,3,4,5,6].filter(d=>open[d]).map(d=>DN[d]).join(', ');
+  const info=[{c:[['Gerador de Escala · CT Price',2]],h:22},{c:[[`Unidade de Negócio: ${unidade}   ·   Equipe: ${equipe}`,7]]},
+    {c:[[`Funcionamento: ${diasAbertos} · ${e.abre} às ${e.fecha}${e.fa?` (fecha ${e.faIni}-${e.faFim})`:''} · ${workers.length} colaboradores · mínimo de ${e.min} no local`,6]]},
+    {c:[[`Jornada semanal: ${dur(S.reg*60)} · Por dia: ${dur(S.reg*60/5)} · Intervalo: ${intervaloResumo()} · 2 folgas por semana · Gerado em ${new Date().toLocaleDateString('pt-BR')}`,6]]},{c:[]}];
+  const sheets=weeks.map((asg,w)=>{const rows=info.map(r=>({...r}));
+    rows.push({h:20,c:[['Colaborador',1],['Entrada',1],['Saída',1],['Intervalo',1],...DF.map(d=>[d,1])]});
+    workers.forEach((wk,i)=>{const P=asg[i];rows.push({h:30,c:[[names[i]+(e.fem&&e.femMarks&&e.femMarks[i]?' (F)':''),7],[clockDay(wk.h.E),8],[clockDay(wk.h.s),8],[lunchLabel(w,i),8],...[0,1,2,3,4,5,6].map(d=>{if(!open[d])return['FECHADO',3];if(P.offs.includes(d))return['FOLGA',3];const h=dayHours[w][d][i]||wk.h,adj=e.rev&&dayGroups[w][d][i]!==wk.g;return[`${hhmm(h.E)}-${hhmm(h.s)}\n${h.ls===h.le?'Sem intervalo':h.curto?'Intervalo de 15 minutos':'Intervalo '+hhmm(h.ls)+'-'+hhmm(h.le)}`,adj?5:4]})]})});
+    rows.push({h:20,c:[['Pessoas no dia',9],['',9],['',9],['',9],...[0,1,2,3,4,5,6].map(d=>[open[d]?String(workers.filter((_,i)=>!asg[i].offs.includes(d)).length):'-',9])]});
+    rows.push({c:[]},{c:[['Horário de entrada e saída do dia · Laranja = intervalo ajustado pelo revezamento · FOLGA = descanso semanal. Confira a convenção coletiva.',6]]});
+    return{nome:L>1?`Semana ${w+1}`:'Escala',rows,widths:[30,10,10,14,17,17,17,17,17,17,17]}});
+  // aba do horário individual, quando estiver completo
+  try{const c=calcH();if(c.work.length===5&&c.manha>0&&c.alm>0&&!intervaloForaDaJornada(c)){const rows=[{c:[['Horário de Trabalho · CT Price',2]],h:22},{c:[[`Colaborador: ${(S.h.nome||'').trim()||'Não informado'}`,7]]},{c:[[`Unidade: ${unidade} · Equipe: ${equipe} · Jornada semanal: ${dur(c.total)} · Intervalo: ${dur(c.alm)}`,6]]},{c:[]},{h:20,c:[['Dia',1],['Entrada',1],['Intervalo',1],['Saída',1],['Horas',1]]}];
+    [0,1,2,3,4,5,6].forEach(d=>{const r=c.rows.find(x=>x.i===d);rows.push(r?{h:20,c:[[DF[d],7],[hhmm(r.E),8],[r.direto?'Sem intervalo':r.curto?'Intervalo de 15 minutos':`${hhmm(r.ls)} - ${hhmm(r.le)}`,8],[clockDay(r.saida),8],[dur(r.horas),8]]}:{h:20,c:[[DF[d],7],['FOLGA',3],['-',3],['-',3],['-',3]]})});
+    sheets.push({nome:'Horário',rows,widths:[16,12,18,12,10]})}}catch(err){}
+  return montarXlsx(sheets)}
+const nomeArquivo=()=>[S.ident.unidade,S.ident.equipe].map(v=>(v||'').trim()).filter(Boolean).join('-').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'ct-price';
+async function baixarXlsx(){if(!lastE)return toast('Monte a escala primeiro');await salvarArquivo(`escala-${nomeArquivo()}.xlsx`,gerarXlsx(),'Excel salvo')}
+async function baixarPdfEscala(){if(!lastE)return toast('Monte a escala primeiro');await loadPdfLib();const bytes=await gerarPdf();await salvarArquivo(`escala-${nomeArquivo()}.pdf`,new Blob([bytes],{type:'application/pdf'}),'PDF salvo')}
+if($('e-xlsx'))$('e-xlsx').onclick=async()=>{const b=$('e-xlsx'),old=b.textContent;b.disabled=true;b.textContent='Gerando Excel…';try{await baixarXlsx()}catch(err){console.error(err);toast('Não foi possível gerar o Excel')}finally{b.disabled=false;b.textContent=old}};
+
+/* ---------- escalas salvas (somente neste navegador) ---------- */
+const SAVED_KEY='ctprice-escalas-salvas-v1';
+const lerSalvas=()=>{try{const a=JSON.parse(localStorage.getItem(SAVED_KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}};
+const gravarSalvas=a=>{try{localStorage.setItem(SAVED_KEY,JSON.stringify(a));return true}catch(e){toast('Não foi possível salvar neste navegador');return false}};
+const novoId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const fmtData=t=>{try{return new Date(t).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}catch(e){return''}};
+function retratoAtual(){return JSON.parse(JSON.stringify({reg:S.reg,ident:S.ident,h:S.h,e:S.e,semana:0}))}
+function nomePadrao(){const u=(S.ident.unidade||'').trim(),q=(S.ident.equipe||'').trim();return[u,q].filter(Boolean).join(' · ')||('Escala '+new Date().toLocaleDateString('pt-BR'))}
+function aplicarEstado(st,id){const base=JSON.parse(JSON.stringify(st));if(base.h)base.h.nome=UPC(base.h.nome);if(base.e)base.e.nomes=UPC(base.e.nomes);if(base.ident){base.ident.unidade=UPC(base.ident.unidade);base.ident.equipe=UPC(base.ident.equipe)}S={...S,reg:base.reg||42,ident:{unidade:'',equipe:'',...base.ident},h:{...S.h,...base.h,sync:base.h&&base.h.sync!==undefined?base.h.sync:false},e:{...S.e,dif:{ativo:false,dias:{}},fem:false,femMarks:{},...base.e},semana:0,savedId:id||null};
+  dayBoxes($('h-dias'),S.h.dias,()=>{S.h.saidas={};renderAll()});dayBoxes($('e-dias'),S.e.dias,onDiasEscala);renderAll()}
+function abrirSalvar(){const lista=lerSalvas(),atual=S.savedId&&lista.find(r=>r.id===S.savedId);
+  $('save-nome').value=atual?atual.nome:nomePadrao();$('save-new').hidden=!atual;$('save-ok').textContent=atual?'Atualizar':'Salvar';
+  $('save-lead').textContent=atual?`Você está editando “${atual.nome}”. Atualize ou salve como uma nova escala.`:'Fica guardada somente neste computador, neste navegador.';
+  const m=$('save-modal');m.showModal?m.showModal():m.setAttribute('open','');setTimeout(()=>$('save-nome').select(),30)}
+function fecharSalvar(){const m=$('save-modal');m.close?m.close():m.removeAttribute('open')}
+function salvarRegistro(comoNova){const nome=UPC($('save-nome').value.trim()||nomePadrao());const lista=lerSalvas();const agora=Date.now();
+  const resumo=lastE?{colab:lastE.workers.length,turnos:S.e.turnos.length,sem:+S.e.sem}:{colab:S.e.tot,turnos:S.e.turnos.length,sem:+S.e.sem};
+  let idx=!comoNova&&S.savedId?lista.findIndex(r=>r.id===S.savedId):-1;
+  if(idx>=0){lista[idx]={...lista[idx],nome,atualizado:agora,estado:retratoAtual(),resumo}}else{const id=novoId();lista.unshift({id,nome,criado:agora,atualizado:agora,estado:retratoAtual(),resumo});S.savedId=id;idx=0}
+  if(!gravarSalvas(lista))return;save();fecharSalvar();renderAberta();renderSalvas();toast(`“${nome}” salva neste computador`)}
+$('e-salvar').onclick=abrirSalvar;$('h-salvar').onclick=abrirSalvar;
+$('save-ok').onclick=()=>salvarRegistro(false);$('save-new').onclick=()=>salvarRegistro(true);$('save-cancel').onclick=fecharSalvar;
+$('save-nome').onkeydown=ev=>{if(ev.key==='Enter'){ev.preventDefault();salvarRegistro(false)}};
+$('save-modal').onclick=ev=>{if(ev.target===$('save-modal'))fecharSalvar()};
+function renderAberta(){const r=S.savedId&&lerSalvas().find(x=>x.id===S.savedId);const el=$('e-aberta');el.hidden=!r;if(r)el.textContent=`📂 Escala aberta: ${r.nome}`}
+async function comRegistro(rec,fn){const bak=JSON.parse(JSON.stringify(S));aplicarEstado(rec.estado,rec.id);try{await fn()}finally{aplicarEstado(bak,bak.savedId);setTab(bak.tab)}}
+function renderSalvas(){
+  const q=($('s-busca').value||'').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const lista=lerSalvas().filter(r=>!q||[r.nome,r.estado?.ident?.unidade,r.estado?.ident?.equipe].join(' ').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').includes(q));
+  const el=$('s-lista');
+  if(!lista.length){el.innerHTML=`<div class="saved-empty" style="grid-column:1/-1">${q?'Nenhuma escala encontrada com esse termo.':'Nenhuma escala salva ainda.<br>Monte a escala em “Criar Escala” e clique em <b>SALVAR</b>, abaixo de PROCESSAR.'}</div>`;return}
+  el.innerHTML=lista.map(r=>{const st=r.estado||{},e=st.e||{},id=st.ident||{},rs=r.resumo||{};return`<article class="saved-item${r.id===S.savedId?' current':''}">
+    <h3>${esc(UPC(r.nome))}</h3>
+    <div class="saved-meta"><span>Unidade: <b>${esc(id.unidade||'Não informada')}</b></span><span>Equipe: <b>${esc(id.equipe||'Não informada')}</b></span>
+    <span>${esc(e.abre||'--:--')} às ${esc(e.fecha||'--:--')} · ${rs.colab||e.tot||0} colaboradores · ${st.reg||42} h</span><span>Salva em ${fmtData(r.atualizado||r.criado)}</span></div>
+    <div class="saved-actions"><button type="button" class="btn" data-s-open="${r.id}" style="grid-column:1/-1">Abrir e editar</button><button type="button" class="btn ghost" data-s-pdf="${r.id}">PDF</button><button type="button" class="btn ghost" data-s-xlsx="${r.id}">Excel</button><button type="button" class="btn del" data-s-del="${r.id}">Excluir</button></div></article>`}).join('');
+  const find=id=>lerSalvas().find(r=>r.id===id);
+  el.querySelectorAll('[data-s-open]').forEach(b=>b.onclick=()=>{const r=find(b.dataset.sOpen);if(!r)return;aplicarEstado(r.estado,r.id);setTab('escala');try{history.replaceState(null,'','#escala')}catch(e){}window.scrollTo({top:0,behavior:'smooth'});toast(`“${r.nome}” aberta`)});
+  const exp=(attr,fn,label)=>el.querySelectorAll(`[data-${attr}]`).forEach(b=>b.onclick=async()=>{const r=find(b.dataset[attr.replace(/-(\w)/g,(_,c)=>c.toUpperCase())]);if(!r)return;const old=b.textContent;b.disabled=true;b.textContent='Gerando…';try{await comRegistro(r,fn)}catch(err){console.error(err);toast(`Não foi possível gerar o ${label}`)}finally{b.disabled=false;b.textContent=old}});
+  exp('s-pdf',baixarPdfEscala,'PDF');exp('s-xlsx',baixarXlsx,'Excel');
+  el.querySelectorAll('[data-s-del]').forEach(b=>b.onclick=()=>{if(!b.classList.contains('armed')){b.classList.add('armed');b.textContent='Clique de novo para excluir';clearTimeout(b._t);b._t=setTimeout(()=>{b.classList.remove('armed');b.textContent='Excluir'},4000);return}
+    const lista=lerSalvas(),r=lista.find(x=>x.id===b.dataset.sDel);gravarSalvas(lista.filter(x=>x.id!==b.dataset.sDel));if(S.savedId===b.dataset.sDel){S.savedId=null;save()}renderAberta();renderSalvas();toast(`“${r?r.nome:'Escala'}” excluída`)});
+}
+window.__renderSalvas=renderSalvas;
+$('s-busca').oninput=renderSalvas;
+// abas abertas em outra janela do mesmo navegador ficam em dia
+window.addEventListener('storage',ev=>{if(ev.key===SAVED_KEY){renderSalvas();renderAberta()}});
+
+// Criar Horário acompanha a entrada do 1º turno e o intervalo da escala até ser alterado à mão.
+function syncHorario(){if(S.h.sync===false)return;const e=S.e,t=e.turnos[0];let ini=e.fa?e.faIni:e.almIni,fim=e.fa?e.faFim:e.almFim;if(!e.fa&&e.almModo==='dur'&&t&&t.entrada&&!t.seis){const h0=shiftTimes(t,0);if(h0.ok){ini=hhmm(h0.ls);fim=hhmm(h0.le)}}let mud=false;
+  if(t&&t.entrada&&S.h.entrada!==t.entrada){S.h.entrada=t.entrada;mud=true}if(ini&&S.h.ini!==ini){S.h.ini=ini;mud=true}if(fim&&S.h.fim!==fim){S.h.fim=fim;mud=true}if(mud)S.h.saidas={};
+  S.h.noturno=!!e.noturno}
+// Com só 5 dias de funcionamento (ex.: fecha sábado e domingo), as folgas são os dias fechados: rodízio vira folgas fixas.
+function onDiasEscala(){const e=S.e,k=e.dias.filter(Boolean).length;
+  if(k===5){if(+e.sem!==1){e.semAntes=+e.sem;e.sem=1;e.semAuto=true;S.semana=0;const f=[0,1,2,3,4,5,6].filter(i=>!e.dias[i]).map(i=>DF[i].toLowerCase());toast(`Folgas fixas: ${f.join(' e ')}`)}}
+  else if(e.semAuto){e.sem=e.semAntes||3;e.semAuto=false;S.semana=0}
+  renderAll()}
+function renderAll(){syncHorario();document.querySelectorAll('[data-reg]').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.reg===S.reg));if(document.activeElement!==$('id-unidade'))$('id-unidade').value=S.ident.unidade||'';if(document.activeElement!==$('id-equipe'))$('id-equipe').value=S.ident.equipe||'';renderH();renderE();renderAberta();save()}
+$('id-unidade').oninput=e=>{const v=e.target.value.toLocaleUpperCase('pt-BR');e.target.value=v;S.ident.unidade=v;save()};
+$('id-equipe').oninput=e=>{const v=e.target.value.toLocaleUpperCase('pt-BR');e.target.value=v;S.ident.equipe=v;save()};
+dayBoxes($('h-dias'),S.h.dias,()=>{S.h.saidas={};renderAll()});
+dayBoxes($('e-dias'),S.e.dias,onDiasEscala);
+$('reset-all').onclick=()=>{const m=$('clear-modal');m.showModal?m.showModal():m.setAttribute('open','')};
+const fecharApagar=()=>{const m=$('clear-modal');m.close?m.close():m.removeAttribute('open')};
+$('clear-cancel').onclick=fecharApagar;$('clear-modal').onclick=ev=>{if(ev.target===$('clear-modal'))fecharApagar()};
+$('clear-ok').onclick=()=>{fecharApagar();
+  try{localStorage.removeItem(KEY)}catch(e){}
+  S={reg:42,tab:'horario',semana:0,ident:{unidade:'',equipe:''},
+    h:{entrada:'',modo:'hora',dur:90,manha:210,ini:'',fim:'',dias:[0,0,0,0,0,0,0],saidas:{},noturno:false,nome:'',sync:true},
+    e:{tot:0,abre:'',fecha:'',dias:[0,0,0,0,0,0,0],min:0,turnos:[{entrada:'',n:0}],almModo:'hora',almDur:0,almIni:'',almFim:'',sem:3,juntas:false,rev:true,nomes:'',fa:false,faIni:'',faFim:'',noturno:false,dif:{ativo:false,dias:{}},fem:false,femMarks:{}},
+    v:{sal:0,ad:0}};
+  dayBoxes($('h-dias'),S.h.dias,()=>{S.h.saidas={};renderAll()});dayBoxes($('e-dias'),S.e.dias,onDiasEscala);
+  document.querySelectorAll('details').forEach(d=>d.open=false);try{$('custo-frame').contentDocument.getElementById('reset')?.click()}catch(e){}
+  setTab('horario');try{history.replaceState(null,'','#horario')}catch(e){}renderAll();toast('Informações apagadas. Suas escalas salvas foram mantidas.',4500)};
+/* ---------- sugestões ---------- */
+/* O site não envia e-mail sozinho: monta a mensagem e oferece Gmail, Outlook, programa de e-mail ou copiar. */
+const SUG_TO='dp4@ctpricems.com.br',SUG_SUBJ='Sugestão - Gerador de Escalas';
+function sugCorpo(){const txt=$('sug-texto').value.trim(),nome=$('sug-nome').value.trim();return txt?`${txt}\n\n${nome?'Enviado por: '+nome+'\n':''}Ferramenta: Gerador de Escalas CT Price`:''}
+$('sug-enviar').onclick=()=>{const corpo=sugCorpo();if(!corpo){toast('Escreva a sua sugestão');$('sug-texto').focus();return}
+  const E=encodeURIComponent,box=$('sug-opcoes');
+  $('sug-gmail').href=`https://mail.google.com/mail/?view=cm&fs=1&to=${E(SUG_TO)}&su=${E(SUG_SUBJ)}&body=${E(corpo)}`;
+  $('sug-outlook').href=`https://outlook.office.com/mail/deeplink/compose?to=${E(SUG_TO)}&subject=${E(SUG_SUBJ)}&body=${E(corpo)}`;
+  $('sug-mailto').href=`mailto:${SUG_TO}?subject=${E(SUG_SUBJ)}&body=${E(corpo)}`;
+  box.hidden=false;box.scrollIntoView({behavior:'smooth',block:'nearest'})};
+$('sug-copiar').onclick=async()=>{const corpo=sugCorpo();if(!corpo)return toast('Escreva a sua sugestão');await copy(`Para: ${SUG_TO}\nAssunto: ${SUG_SUBJ}\n\n${corpo}`);toast('Sugestão copiada. Cole no seu e-mail e envie para '+SUG_TO,5000)};
+$('sug-abrir').onclick=()=>{const m=$('sug-modal');$('sug-opcoes').hidden=true;m.showModal?m.showModal():m.setAttribute('open','');setTimeout(()=>$('sug-texto').focus(),30)};
+const fecharSug=()=>{const m=$('sug-modal');m.close?m.close():m.removeAttribute('open')};
+$('sug-fechar').onclick=fecharSug;$('sug-modal').onclick=ev=>{if(ev.target===$('sug-modal'))fecharSug()};
+['sug-texto','sug-nome'].forEach(id=>$(id).addEventListener('input',()=>{$('sug-opcoes').hidden=true}));
+const TABS=['horario','escala','custo','salvas'];const hs=(location.hash||'').slice(1);if(!TABS.includes(S.tab))S.tab='horario';if(TABS.includes(hs))S.tab=hs;
+setTab(S.tab);renderAll();
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+})();
+</script>
+
+</body>
+</html>
